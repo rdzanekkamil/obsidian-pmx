@@ -10,7 +10,7 @@ export interface TitleCellProps {
   showTagColors: boolean
   onTitleClick: () => void
   onTitleSave: (newTitle: string) => Promise<void>
-  onAddSubtask: () => void
+  onAddSubtask?: () => void
 }
 
 export class TitleCell {
@@ -34,14 +34,16 @@ export class TitleCell {
       })
     })
 
-    new IconButton(this.el)
-      .setIcon('plus')
-      .setTooltip('Add subtask')
-      .setRevealOnHover(true)
-      .onClick((e) => {
-        e.stopPropagation()
-        props.onAddSubtask()
-      })
+    if (props.onAddSubtask) {
+      new IconButton(this.el)
+        .setIcon('plus')
+        .setTooltip('Add subtask')
+        .setRevealOnHover(true)
+        .onClick((e) => {
+          e.stopPropagation()
+          props.onAddSubtask!()
+        })
+    }
 
     if (task.type === 'milestone') {
       new Chip(this.el)
