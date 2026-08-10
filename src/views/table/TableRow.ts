@@ -11,7 +11,6 @@ import { DueDateCell } from '../../ui/composites/cells/DueDateCell'
 import { PriorityCell } from '../../ui/composites/cells/PriorityCell'
 import { ProgressCell } from '../../ui/composites/cells/ProgressCell'
 import { StatusCell } from '../../ui/composites/cells/StatusCell'
-import { TagsCell } from '../../ui/composites/cells/TagsCell'
 import { TitleCell } from '../../ui/composites/cells/TitleCell'
 
 export function renderTaskRow(tbody: HTMLElement, task: Task, depth: number, ctx: TableContext): void {
@@ -100,8 +99,6 @@ export function renderTaskRow(tbody: HTMLElement, task: Task, depth: number, ctx
       await ctx.onRefresh()
     }
   })
-
-  new TagsCell(row, task.tags, ctx.plugin.settings.showTagColors)
 
   new ActionsCell(row, {
     onClick: (e) => {

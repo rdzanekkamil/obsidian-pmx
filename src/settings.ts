@@ -50,8 +50,13 @@ export class PMSettingTab extends PluginSettingTab {
             control: {
               type: 'dropdown',
               key: 'defaultView',
-              options: { table: 'Table', gantt: 'Gantt', kanban: 'Board' }
+              options: { table: 'Table', kanban: 'Board', gantt: 'Gantt' }
             }
+          },
+          {
+            name: 'Show Gantt view',
+            desc: 'Display the Gantt chart option in project views.',
+            control: { type: 'toggle', key: 'showGantt' }
           },
           {
             name: 'Save tasks on close',

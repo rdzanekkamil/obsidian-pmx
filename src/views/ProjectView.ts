@@ -320,12 +320,18 @@ export class ProjectView extends ItemView {
       })
     )
 
+    const viewOptions: { id: ViewMode; icon: string; label: string }[] = [
+      { id: 'table', icon: 'table', label: 'Table' },
+      { id: 'kanban', icon: 'layout-dashboard', label: 'Board' }
+    ]
+    if (this.plugin.settings.showGantt) {
+      viewOptions.push({ id: 'gantt', icon: 'git-fork', label: 'Gantt' })
+    }
+    if (!this.plugin.settings.showGantt && this.currentView === 'gantt') {
+      this.currentView = 'table'
+    }
     new ViewSwitcher<ViewMode>(this.toolbarEl, {
-      options: [
-        { id: 'table', icon: 'table', label: 'Table' },
-        { id: 'gantt', icon: 'git-fork', label: 'Gantt' },
-        { id: 'kanban', icon: 'layout-dashboard', label: 'Board' }
-      ],
+      options: viewOptions,
       active: this.currentView,
       onChange: (mode) => {
         this.currentView = mode

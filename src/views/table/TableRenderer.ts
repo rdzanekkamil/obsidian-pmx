@@ -65,7 +65,6 @@ export function renderTable(ctx: TableContext): void {
     { key: 'priority', label: 'Priority', width: '110px' },
     { key: 'assignees', label: 'Assignees', width: '140px' },
     { key: 'due', label: 'Due', width: '110px' },
-    { key: 'tags', label: 'Tags', width: '130px' },
     { key: 'progress', label: 'Progress', width: '120px' }
   ]
   const sortableHeaders: { key: SortKey; th: HTMLElement }[] = []
@@ -196,7 +195,7 @@ function renderWindowRows(ctx: TableContext): void {
   if (!tbody) return
 
   const rows = state.visibleRows
-  const colCount = 8 // 7 data cols + 1 actions col
+  const colCount = 7 // 6 data cols + 1 actions col
   const { start, end } = computeWindow(state)
   state.windowStart = start
   state.windowEnd = end
