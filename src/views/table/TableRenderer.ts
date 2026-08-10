@@ -1,12 +1,11 @@
 import type PMPlugin from '../../main'
 import type { Project, FilterState, PriorityConfig, StatusConfig } from '../../types'
 import { type FlatTask, flattenTasks } from '../../store/TaskTreeOps'
-import { findTaskById } from '../../store/TaskIndex'
 import { applyTaskFilterFlat, isFilterActive } from '../../store/TaskFilter'
 import { openTaskModal } from '../../ui/ModalFactory'
 import { renderAddButton } from '../../ui/composites/addButton'
 import { compareTask } from './TableFilters'
-import { renderTaskRow, updateSelectedRow, updateSelectAllCheckbox } from './TableRow'
+import { renderTaskRow } from './TableRow'
 
 type SortKey = 'title' | 'status' | 'priority' | 'due' | 'assignees' | 'progress'
 type SortDir = 'asc' | 'desc'
@@ -17,9 +16,6 @@ export interface TableState {
   sortKey: SortKey
   sortDir: SortDir
   filter: FilterState
-  selectedTaskId: string | null
-  selectedTaskIds: Set<string>
-  lastCheckedTaskId: string | null
   tableBody: HTMLElement | null
   wrapper: HTMLElement | null
   /** Display list after filter/sort/collapse. Drives the virtual window and selection. */
@@ -42,8 +38,6 @@ export interface TableContext {
   priorities: PriorityConfig[]
   state: TableState
   onRefresh: () => Promise<void>
-  onSelectionChange: () => void
-  onBulkDelete: () => void
 }
 
 export function renderTable(ctx: TableContext): void {
@@ -55,8 +49,6 @@ export function renderTable(ctx: TableContext): void {
     scrollScheduled = true
     window.requestAnimationFrame(() => {
       scrollScheduled = false
-      // Rebuilding the tbody nudges scrollTop near the edges, firing another scroll
-      // event; repainting only on a real move stops that feeding back forever.
       const { start, end } = computeWindow(ctx.state)
       if (start === ctx.state.windowStart && end === ctx.state.windowEnd) return
       ctx.state.renderWindow?.()
@@ -67,28 +59,14 @@ export function renderTable(ctx: TableContext): void {
   const thead = table.createEl('thead')
   const hrow = thead.createEl('tr')
 
-  const selectAllTh = hrow.createEl('th', { cls: 'pm-table-cell-select' })
-  const selectAllCb = selectAllTh.createEl('input', { type: 'checkbox', cls: 'pm-select-all-checkbox' })
-  selectAllCb.addEventListener('change', () => {
-    const ids = getVisibleTaskIds(ctx.state)
-    if (selectAllCb.checked) {
-      for (const id of ids) ctx.state.selectedTaskIds.add(id)
-    } else {
-      ctx.state.selectedTaskIds.clear()
-    }
-    updateSelectCheckboxes(ctx.state)
-    ctx.onSelectionChange()
-  })
-
-  const cols: { key: SortKey | null; label: string; width?: string }[] = [
-    { key: null, label: '', width: '32px' },
+  const cols: { key: SortKey; label: string; width?: string }[] = [
     { key: 'title', label: 'Task', width: 'auto' },
     { key: 'status', label: 'Status', width: '130px' },
     { key: 'priority', label: 'Priority', width: '110px' },
     { key: 'assignees', label: 'Assignees', width: '140px' },
     { key: 'due', label: 'Due', width: '110px' },
-    { key: 'progress', label: 'Progress', width: '120px' },
-    { key: null, label: 'Time', width: '90px' }
+    { key: 'tags', label: 'Tags', width: '130px' },
+    { key: 'progress', label: 'Progress', width: '120px' }
   ]
   const sortableHeaders: { key: SortKey; th: HTMLElement }[] = []
   const paintSortIndicators = () => {
@@ -96,7 +74,7 @@ export function renderTable(ctx: TableContext): void {
       th.querySelector('.pm-sort-indicator')?.remove()
       if (ctx.state.sortKey === key) {
         th.createSpan({
-          text: ctx.state.sortDir === 'asc' ? ' \u2191' : ' \u2193',
+          text: ctx.state.sortDir === 'asc' ? ' ↑' : ' ↓',
           cls: 'pm-sort-indicator'
         })
       }
@@ -106,34 +84,25 @@ export function renderTable(ctx: TableContext): void {
   for (const col of cols) {
     const th = hrow.createEl('th')
     if (col.width) th.setCssStyles({ width: col.width })
-    if (col.key) {
-      th.addClass('pm-table-th-sortable')
-      th.setAttribute('role', 'button')
-      th.setAttribute('aria-label', `Sort by ${col.label}`)
-      th.createSpan({ text: col.label })
-      sortableHeaders.push({ key: col.key, th })
-      th.addEventListener('click', () => {
-        if (ctx.state.sortKey === col.key) {
-          ctx.state.sortDir = ctx.state.sortDir === 'asc' ? 'desc' : 'asc'
-        } else {
-          ctx.state.sortKey = col.key as SortKey
-          ctx.state.sortDir = 'asc'
-        }
-        paintSortIndicators()
-        refreshTableBody(ctx)
-      })
-    } else {
-      th.setText(col.label)
-    }
+    th.addClass('pm-table-th-sortable')
+    th.setAttribute('role', 'button')
+    th.setAttribute('aria-label', `Sort by ${col.label}`)
+    th.createSpan({ text: col.label })
+    sortableHeaders.push({ key: col.key, th })
+    th.addEventListener('click', () => {
+      if (ctx.state.sortKey === col.key) {
+        ctx.state.sortDir = ctx.state.sortDir === 'asc' ? 'desc' : 'asc'
+      } else {
+        ctx.state.sortKey = col.key as SortKey
+        ctx.state.sortDir = 'asc'
+      }
+      paintSortIndicators()
+      refreshTableBody(ctx)
+    })
   }
   paintSortIndicators()
 
-  for (const cf of ctx.project.customFields) {
-    const th = hrow.createEl('th', { text: cf.name })
-    th.setCssStyles({ width: '120px' })
-  }
-
-  // Actions column, which must stay last.
+  // Actions column, must stay last.
   const actionsTh = hrow.createEl('th')
   actionsTh.setCssStyles({ width: '40px' })
 
@@ -196,7 +165,6 @@ function fillTableBody(ctx: TableContext): void {
     ? sorted
     : sorted.filter((f) => f.visible && (ctx.plugin.settings.tableShowSubtasks || f.depth === 0))
   ctx.state.renderWindow = () => renderWindowRows(ctx)
-  // The data changed, so repaint even if the window bounds happen to match.
   ctx.state.windowStart = -1
   ctx.state.windowEnd = -1
   renderWindowRows(ctx)
@@ -228,7 +196,7 @@ function renderWindowRows(ctx: TableContext): void {
   if (!tbody) return
 
   const rows = state.visibleRows
-  const colCount = 10 + ctx.project.customFields.length
+  const colCount = 8 // 7 data cols + 1 actions col
   const { start, end } = computeWindow(state)
   state.windowStart = start
   state.windowEnd = end
@@ -264,105 +232,4 @@ function spacerRow(tbody: HTMLElement, colCount: number, height: number): void {
   const tr = tbody.createEl('tr', { cls: 'pm-table-spacer' })
   const td = tr.createEl('td', { attr: { colspan: String(colCount) } })
   td.setCssStyles({ height: `${height}px` })
-}
-
-export function updateSelectCheckboxes(state: TableState): void {
-  if (!state.tableBody) return
-  const rows = state.tableBody.querySelectorAll('tr[data-task-id]')
-  for (const row of Array.from(rows)) {
-    const id = (row as HTMLElement).dataset.taskId
-    if (id === undefined) continue
-    const cb = row.querySelector('.pm-select-checkbox')
-    if (cb) (cb as HTMLInputElement).checked = state.selectedTaskIds.has(id)
-  }
-  updateSelectAllCheckbox(state)
-}
-
-export function handleTableKeyDown(e: KeyboardEvent, ctx: TableContext): void {
-  const active = activeDocument.activeElement
-  const isInput =
-    active instanceof HTMLInputElement ||
-    active instanceof HTMLTextAreaElement ||
-    (active instanceof HTMLElement && active.contentEditable === 'true')
-
-  if (e.key === 'Escape') {
-    if (isInput) {
-      active.blur()
-      return
-    }
-    if (ctx.state.selectedTaskIds.size > 0) {
-      ctx.state.selectedTaskIds.clear()
-      updateSelectCheckboxes(ctx.state)
-      ctx.onSelectionChange()
-      return
-    }
-    ctx.state.selectedTaskId = null
-    updateSelectedRow(ctx.state)
-    return
-  }
-
-  if (isInput) return
-
-  const rows = getVisibleTaskIds(ctx.state)
-  if (!rows.length) return
-
-  switch (e.key) {
-    case 'ArrowDown':
-    case 'j': {
-      e.preventDefault()
-      const idx = ctx.state.selectedTaskId ? rows.indexOf(ctx.state.selectedTaskId) : -1
-      const next = Math.min(idx + 1, rows.length - 1)
-      ctx.state.selectedTaskId = rows[next]
-      updateSelectedRow(ctx.state)
-      break
-    }
-    case 'ArrowUp':
-    case 'k': {
-      e.preventDefault()
-      const idx = ctx.state.selectedTaskId ? rows.indexOf(ctx.state.selectedTaskId) : rows.length
-      const prev = Math.max(idx - 1, 0)
-      ctx.state.selectedTaskId = rows[prev]
-      updateSelectedRow(ctx.state)
-      break
-    }
-    case 'Enter':
-    case 'e': {
-      if (!ctx.state.selectedTaskId) return
-      e.preventDefault()
-      const task = findTaskById(ctx.project, ctx.state.selectedTaskId)
-      if (task) {
-        openTaskModal(ctx.plugin, ctx.project, {
-          task,
-          onSave: async () => {
-            await ctx.onRefresh()
-          }
-        })
-      }
-      break
-    }
-    case 'Delete':
-    case 'Backspace': {
-      e.preventDefault()
-      if (ctx.state.selectedTaskIds.size > 0) {
-        ctx.onBulkDelete()
-        break
-      }
-      if (!ctx.state.selectedTaskId) return
-      const id = ctx.state.selectedTaskId
-      const currentIdx = rows.indexOf(id)
-      const nextIdx = currentIdx < rows.length - 1 ? currentIdx + 1 : currentIdx - 1
-      ctx.state.selectedTaskId = nextIdx >= 0 ? rows[nextIdx] : null
-      void deleteTask(id, ctx)
-      break
-    }
-  }
-}
-
-export function getVisibleTaskIds(state: TableState): string[] {
-  return state.visibleRows.map((f) => f.task.id)
-}
-
-async function deleteTask(id: string, ctx: TableContext): Promise<void> {
-  await ctx.plugin.store.deleteTask(ctx.project, id)
-  await ctx.onRefresh()
 }
