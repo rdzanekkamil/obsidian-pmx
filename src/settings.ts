@@ -215,6 +215,7 @@ export class PMSettingTab extends PluginSettingTab {
   }
 
   async setControlValue(key: string, value: unknown): Promise<void> {
+    if (key === 'apiPort') value = parseInt(String(value), 10)
     await super.setControlValue(key, value)
     if (key === 'kanbanShowDescriptionPreview') this.plugin.refreshProjectViews()
     this.refreshDomState()
