@@ -1,3 +1,4 @@
+import { createRouter, getRouterParam, readBody, json, createError } from 'h3'
 import type { H3Event } from 'h3'
 import type { TaskSource } from '../../store/TaskSource'
 import type { PMSettings, Task } from '../../types'
@@ -6,8 +7,6 @@ import { findTaskById } from '../../store/TaskIndex'
 import { makeTask } from '../../types'
 
 export function createTasksRouter(store: TaskSource, settings: () => PMSettings) {
-  const { createRouter, getRouterParam, readBody, json, createError } = require('h3')
-
   const router = createRouter()
 
   async function getProjectById(projectId: string): Promise<{ id: string } | null> {
@@ -15,7 +14,6 @@ export function createTasksRouter(store: TaskSource, settings: () => PMSettings)
     return projects.find((p: { id: string }) => p.id === projectId) ?? null
   }
 
-  // GET /projects/:projectId/tasks
   router.get('/', async (event: H3Event) => {
     const projectId = getRouterParam(event, 'projectId')
     const project = await getProjectById(projectId!)
@@ -23,7 +21,6 @@ export function createTasksRouter(store: TaskSource, settings: () => PMSettings)
     return json(flattenTasks(project.tasks).map((f: { task: Task }) => f.task))
   })
 
-  // GET /projects/:projectId/tasks/:taskId
   router.get('/:taskId', async (event: H3Event) => {
     const projectId = getRouterParam(event, 'projectId')
     const taskId = getRouterParam(event, 'taskId')
@@ -34,7 +31,6 @@ export function createTasksRouter(store: TaskSource, settings: () => PMSettings)
     return json(task)
   })
 
-  // POST /projects/:projectId/tasks
   router.post('/', async (event: H3Event) => {
     const projectId = getRouterParam(event, 'projectId')
     const body = await readBody(event)
@@ -45,7 +41,6 @@ export function createTasksRouter(store: TaskSource, settings: () => PMSettings)
     return json(task, 201)
   })
 
-  // PUT /projects/:projectId/tasks/:taskId
   router.put('/:taskId', async (event: H3Event) => {
     const projectId = getRouterParam(event, 'projectId')
     const taskId = getRouterParam(event, 'taskId')
@@ -58,7 +53,6 @@ export function createTasksRouter(store: TaskSource, settings: () => PMSettings)
     return json(task)
   })
 
-  // DELETE /projects/:projectId/tasks/:taskId
   router.delete('/:taskId', async (event: H3Event) => {
     const projectId = getRouterParam(event, 'projectId')
     const taskId = getRouterParam(event, 'taskId')

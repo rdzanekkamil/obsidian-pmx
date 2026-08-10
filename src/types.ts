@@ -198,7 +198,7 @@ export const DEFAULT_SETTINGS: PMSettings = {
   showGantt: true,
   tableShowSubtasks: true,
   showApi: false,
-  apiPort: 8123,
+  apiPort: 17171,
   showTagColors: true,
   notificationsEnabled: true,
   notificationLeadDays: 2,

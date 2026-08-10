@@ -27,6 +27,47 @@ export class PMSettingTab extends PluginSettingTab {
     this.icon = 'chart-gantt'
   }
 
+  display(): void {
+    super.display()
+
+    const existing = this.containerEl.querySelector('.api-settings-section')
+    if (existing) return
+
+    const section = this.containerEl.createDiv('api-settings-section')
+    section.style.cssText = 'padding: 0 16px 16px;'
+
+    new Setting(section)
+      .setName('Enable REST API')
+      .setDesc('Start HTTP server on localhost for CRUD operations. Requires restart.')
+      .addToggle((t) =>
+        t.setValue(this.plugin.settings.showApi).onChange((v) => {
+          this.plugin.settings.showApi = v
+          void this.plugin.saveSettings()
+        })
+      )
+
+    new Setting(section)
+      .setName('Port')
+      .setDesc('TCP port. Default: 17171.')
+      .addText((t) =>
+        t
+          .setPlaceholder('17171')
+          .setValue(String(this.plugin.settings.apiPort))
+          .onChange((v) => {
+            const port = parseInt(v, 10)
+            if (port > 0 && port < 65536) {
+              this.plugin.settings.apiPort = port
+              void this.plugin.saveSettings()
+            }
+          })
+      )
+  }
+
+  hide(): void {
+    this.containerEl.querySelector('.api-settings-section')?.remove()
+    super.hide()
+  }
+
   getSettingDefinitions(): SettingDefinitionItem[] {
     return [
       {
@@ -194,31 +235,8 @@ export class PMSettingTab extends PluginSettingTab {
         heading: 'Integrations',
         visible: () => isTaskNotesInstalled(this.app),
         items: [this.taskNotesPage()]
-      },
-      {
-        type: 'group',
-        heading: 'API',
-        items: [
-          {
-            name: 'Enable REST API',
-            desc: 'Start an HTTP server on localhost for CRUD operations. Requires restart.',
-            control: { type: 'toggle', key: 'showApi' }
-          },
-          {
-            name: 'Port',
-            desc: 'TCP port for the API server.',
-            control: { type: 'text', key: 'apiPort', defaultValue: '8123' }
-          }
-        ]
       }
     ]
-  }
-
-  async setControlValue(key: string, value: unknown): Promise<void> {
-    if (key === 'apiPort') value = parseInt(String(value), 10)
-    await super.setControlValue(key, value)
-    if (key === 'kanbanShowDescriptionPreview') this.plugin.refreshProjectViews()
-    this.refreshDomState()
   }
 
   private statusesPage(): SettingDefinitionPage {
