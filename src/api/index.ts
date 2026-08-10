@@ -79,27 +79,86 @@ function httpError(res: http.ServerResponse, status: number, message: string) {
 const SPEC = {
   openapi: '3.0.3',
   info: { title: 'Project ManagerX REST API', version: '1.0.0', description: 'CRUD API for Projects, Tasks, and Subtasks.' },
-  servers: [{ url: 'http://localhost:{port}', variables: { port: { default: '8123' } } }],
+  servers: [{ url: 'http://localhost:{port}', variables: { port: { default: '17171' } } }],
   paths: {
-    '/projects': { get: { summary: 'List all projects', tags: ['Projects'], responses: { 200: { description: 'Array of projects' } } }, post: { summary: 'Create a project', tags: ['Projects'], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['title'], properties: { title: { type: 'string' } } } } } }, responses: { 201: { description: 'Created project' } } } },
-    '/projects/{id}': { get: { summary: 'Get a project', tags: ['Projects'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Project' }, 404: { description: 'Not found' } } }, put: { summary: 'Update a project', tags: ['Projects'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Updated project' } } }, delete: { summary: 'Delete a project', tags: ['Projects'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 204: { description: 'Deleted' } } } },
-    '/projects/{projectId}/tasks': { get: { summary: 'List tasks', tags: ['Tasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Array of tasks' } } }, post: { summary: 'Create a task', tags: ['Tasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 201: { description: 'Created task' } } } },
+    '/projects': { get: { summary: 'List all projects (no tasks)', tags: ['Projects'], responses: { 200: { description: 'Array of project summaries' } } }, post: { summary: 'Create a project', tags: ['Projects'], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['title'], properties: { title: { type: 'string' } } } } } }, responses: { 201: { description: 'Created project' } } } },
+    '/projects/{id}': { get: { summary: 'Get a project (use ?includeTasks=true for tasks)', tags: ['Projects'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }, { name: 'includeTasks', in: 'query', schema: { type: 'string', enum: ['true'] }, description: 'Include tasks' }], responses: { 200: { description: 'Project' }, 404: { description: 'Not found' } } }, put: { summary: 'Update a project', tags: ['Projects'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Updated project' } } }, delete: { summary: 'Delete a project', tags: ['Projects'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 204: { description: 'Deleted' } } } },
+    '/projects/{projectId}/tasks': { get: { summary: 'List tasks (flattened)', tags: ['Tasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Array of tasks' } } }, post: { summary: 'Create a task', tags: ['Tasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 201: { description: 'Created task' } } } },
     '/projects/{projectId}/tasks/{taskId}': { get: { summary: 'Get a task', tags: ['Tasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }, { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Task' } } }, put: { summary: 'Update a task', tags: ['Tasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }, { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Updated task' } } }, delete: { summary: 'Delete a task', tags: ['Tasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }, { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 204: { description: 'Deleted' } } } },
     '/projects/{projectId}/tasks/{taskId}/subtasks': { post: { summary: 'Add subtask', tags: ['Subtasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }, { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 201: { description: 'Created subtask' } } } }
   }
 }
 
-const SWAGGER_HTML = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Project ManagerX API</title><link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"></head><body><div id="swagger-ui"></div><script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script><script>SwaggerUIBundle({url:'/swagger.json',dom_id:'#swagger-ui',presets:[SwaggerUIBundle.presets.apis,SwaggerUIBundle.SwaggerUIStandalonePreset],layout:'StandaloneLayout'})</script></body></html>`
+const SWAGGER_HTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Project ManagerX API</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 60px auto; padding: 0 24px; color: #333; }
+  h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 8px; }
+  h2 { font-size: 1rem; font-weight: 600; margin: 24px 0 8px; }
+  p { font-size: 0.875rem; color: #666; line-height: 1.6; }
+  a { color: #5c6bc0; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-size: 0.875em; }
+  pre { background: #f5f5f5; padding: 16px; border-radius: 8px; font-size: 0.8rem; overflow-x: auto; }
+  hr { border: none; border-top: 1px solid #eee; margin: 24px 0; }
+  .badge { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+  <div class="badge">v1.0.0</div>
+  <h1>Project ManagerX REST API</h1>
+  <p>Serve your projects and tasks over HTTP. Full OpenAPI spec below.</p>
+
+  <h2>OpenAPI spec</h2>
+  <p>Copy the URL below and paste into:</p>
+  <pre>${window.location.origin}/swagger.json</pre>
+  <p>
+    <a href="https://petstore.swagger.io/" target="_blank">Swagger Editor</a> ·
+    <a href="https://hoppscotch.io/" target="_blank">Hoppscotch</a> ·
+    <a href="https://insomnia.rest/" target="_blank">Insomnia</a>
+  </p>
+
+  <hr>
+  <h2>Endpoints</h2>
+  <p><strong>Projects</strong></p>
+  <pre>GET    /projects               List all (no tasks)
+GET    /projects/:id            Get one (use ?includeTasks=true)
+POST   /projects               Create
+PUT    /projects/:id           Update
+DELETE /projects/:id           Delete</pre>
+  <p><strong>Tasks</strong></p>
+  <pre>GET    /projects/:id/tasks           All tasks flattened
+GET    /projects/:id/tasks/:tid       Get one
+POST   /projects/:id/tasks            Create
+PUT    /projects/:id/tasks/:tid       Update
+DELETE /projects/:id/tasks/:tid      Delete</pre>
+  <p><strong>Subtasks</strong></p>
+  <pre>POST   /projects/:id/tasks/:tid/subtasks  Add subtask</pre>
+</body>
+</html>`
 
 // ── Projects router ──────────────────────────────────────────────────────────
 function projectsRouter(store: TaskSource, settings: () => PMSettings) {
   const r = new Router()
-  r.get('/projects', async (_req, res) => json(res, await store.loadAllProjects(settings().projectsFolder)))
-  r.get('/projects/:id', async (_req, res, p) => {
+  r.get('/projects', async (_req, res) => {
+    const projects = await store.loadAllProjects(settings().projectsFolder)
+    const list = projects.map(({ id, title, path, created, updated }: { id: string; title: string; path: string; created: number; updated: number }) => ({ id, title, path, created, updated }))
+    json(res, list)
+  })
+  r.get('/projects/:id', async (req, res, p) => {
     const projects = await store.loadAllProjects(settings().projectsFolder)
     const project = projects.find((x: { id: string }) => x.id === p.id)
     if (!project) return httpError(res, 404, 'Project not found')
-    json(res, project)
+    const url = new URL(req.url ?? '', 'http://localhost')
+    if (url.searchParams.get('includeTasks') === 'true') {
+      json(res, project)
+    } else {
+      const { id, title, path, created, updated } = project
+      json(res, { id, title, path, created, updated })
+    }
   })
   r.post('/projects', async (req, res) => {
     const body = await readBody(req) as { title?: string }
