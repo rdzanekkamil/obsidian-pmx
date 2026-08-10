@@ -194,6 +194,22 @@ export class PMSettingTab extends PluginSettingTab {
         heading: 'Integrations',
         visible: () => isTaskNotesInstalled(this.app),
         items: [this.taskNotesPage()]
+      },
+      {
+        type: 'group',
+        heading: 'API',
+        items: [
+          {
+            name: 'Enable REST API',
+            desc: 'Start an HTTP server on localhost for CRUD operations. Requires restart.',
+            control: { type: 'toggle', key: 'showApi' }
+          },
+          {
+            name: 'Port',
+            desc: 'TCP port for the API server.',
+            control: { type: 'text', key: 'apiPort', defaultValue: '8123' }
+          }
+        ]
       }
     ]
   }

@@ -50,6 +50,11 @@ export default class PMPlugin extends Plugin {
     this.notifier = new Notifier(this)
     this.router = new PMViewRouter(this)
 
+    if (this.settings.showApi) {
+      const { startApiServer } = await import('./api/server')
+      startApiServer(this.store, () => this.settings, this.settings.apiPort)
+    }
+
     this.registerView(PM_PROJECT_VIEW_TYPE, (leaf) => new ProjectView(leaf, this))
     this.registerView(PM_DASHBOARD_VIEW_TYPE, (leaf) => new DashboardView(leaf, this))
     if (__STYLEGUIDE__) registerStyleguide(this)
@@ -171,6 +176,7 @@ export default class PMPlugin extends Plugin {
 
   onunload(): void {
     this.notifier.stop()
+    import('./api/server').then(({ stopApiServer }) => stopApiServer())
   }
 
   async loadSettings(): Promise<void> {
