@@ -370,6 +370,57 @@ export class ProjectView extends ItemView {
       .onClick(() => {
         openProjectModal(this.plugin, { project: this.project })
       })
+
+    this.renderVersionPanel(right)
+  }
+
+  private renderVersionPanel(container: HTMLElement): void {
+    if (!this.project) return
+    const versions = this.project.versions
+    if (!versions.length) return
+
+    const btn = new ExtraButtonComponent(container)
+      .setIcon('git-branch')
+      .setTooltip(`Versions (${versions.length})`)
+      .setDisabled(versions.length === 0)
+
+    const dropdown = createDiv('pm-version-dropdown pm-dropdown')
+    dropdown.style.display = 'none'
+
+    for (const v of versions) {
+      const taskCount = this.project.tasks.filter((t) => t.versionId === v.id).length
+      const row = dropdown.createDiv('pm-version-row')
+      row.addClass('clickable-icon')
+      const badge = v.releasedAt ? row.createEl('span', { text: '✓', cls: 'pm-version-badge pm-version-badge--released' }) : row.createEl('span', { text: '○', cls: 'pm-version-badge pm-version-badge--draft' })
+      row.createSpan({ text: v.name, cls: 'pm-version-name' })
+      row.createSpan({ text: ` (${taskCount})`, cls: 'pm-version-count' })
+      row.addEventListener('click', () => {
+        if (!this.project) return
+        this.filter = { ...makeDefaultFilter(), showArchived: this.filter.showArchived }
+        // ponytail: no versionId in FilterState — filter via view refresh
+        this.refreshSubview()
+        dropdown.style.display = 'none'
+      })
+    }
+
+    btn.extraSettingsEl.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const visible = dropdown.style.display === 'block'
+      dropdown.style.display = visible ? 'none' : 'block'
+      const rect = btn.extraSettingsEl.getBoundingClientRect()
+      dropdown.style.position = 'fixed'
+      dropdown.style.top = `${rect.bottom + 4}px`
+      dropdown.style.right = `${window.innerWidth - rect.right}px`
+      dropdown.style.zIndex = '999'
+    })
+
+    document.addEventListener('click', (e) => {
+      if (!dropdown.contains(e.target as Node)) {
+        dropdown.style.display = 'none'
+      }
+    })
+
+    container.appendChild(dropdown)
   }
 
   private renderCurrentView(): void {

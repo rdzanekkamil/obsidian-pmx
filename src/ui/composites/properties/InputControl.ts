@@ -4,7 +4,7 @@ export interface InputControlOpts {
   container: HTMLElement
   value: string
   onChange: (value: string) => void
-  inputType?: 'text' | 'number' | 'date'
+  inputType?: 'text' | 'number' | 'date' | 'textarea'
   suffix?: string
   placeholder?: string
   number?: { min?: number; max?: number }
@@ -22,6 +22,25 @@ export function renderInputControl(opts: InputControlOpts): void {
   })
 
   trigger.addEventListener('click', () => {
+    if (inputType === 'textarea') {
+      const existing = opts.container.querySelector('textarea')
+      if (existing) { existing.focus(); return }
+      const area = opts.container.createEl('textarea', {
+        cls: 'pm-input',
+        attr: { rows: '4', placeholder: opts.placeholder ?? '' }
+      })
+      area.value = opts.value
+      area.focus()
+      area.addEventListener('blur', () => {
+        opts.onChange(area.value)
+        area.detach()
+      })
+      area.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { area.detach(); trigger.style.display = '' }
+      })
+      trigger.style.display = 'none'
+      return
+    }
     makeInlineEdit({
       container: opts.container,
       display: trigger,

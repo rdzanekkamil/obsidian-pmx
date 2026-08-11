@@ -201,8 +201,8 @@ export class ProjectModal extends Modal {
     const versionList = versionSection.createDiv('pm-version-list')
     const renderVersions = () => {
       versionList.empty()
-      for (const v of this.draft.versions) {
-        this.renderVersionEditor(versionList, v, renderVersions)
+      for (let i = 0; i < this.draft.versions.length; i++) {
+        this.renderVersionEditor(versionList, this.draft.versions[i], i, renderVersions)
       }
       renderAddButton(versionList, 'Add version', () => {
         this.draft.versions.push({
@@ -429,25 +429,24 @@ export class ProjectModal extends Modal {
     })
   }
 
-  private renderVersionEditor(container: HTMLElement, version: Version, rerender: () => void): void {
-    const idx = this.draft.versions.findIndex((v) => v.id === version.id)
+  private renderVersionEditor(container: HTMLElement, version: Version, index: number, rerender: () => void): void {
     const row = container.createDiv('pm-version-row')
 
     const nameInput = row.createEl('input', { type: 'text', value: version.name, cls: 'pm-input pm-version-name' })
     nameInput.placeholder = 'e.g. v1.0, sprint-5, winter-2026'
     nameInput.addEventListener('change', () => {
-      this.draft.versions[idx].name = nameInput.value
+      this.draft.versions[index].name = nameInput.value
     })
 
     const descInput = row.createEl('input', { type: 'text', value: version.description, cls: 'pm-input pm-version-desc' })
     descInput.placeholder = 'Description'
     descInput.addEventListener('change', () => {
-      this.draft.versions[idx].description = descInput.value
+      this.draft.versions[index].description = descInput.value
     })
 
     const dateInput = row.createEl('input', { type: 'date', value: version.plannedReleaseDate, cls: 'pm-input' })
     dateInput.addEventListener('change', () => {
-      this.draft.versions[idx].plannedReleaseDate = dateInput.value
+      this.draft.versions[index].plannedReleaseDate = dateInput.value
     })
 
     if (version.releasedAt) {
@@ -456,7 +455,7 @@ export class ProjectModal extends Modal {
 
     new IconButton(row, 'trash')
       .onClick(() => {
-        this.draft.versions.splice(idx, 1)
+        this.draft.versions.splice(index, 1)
         rerender()
       })
   }
