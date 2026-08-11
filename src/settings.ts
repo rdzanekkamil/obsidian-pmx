@@ -186,10 +186,10 @@ export class PMSettingTab extends PluginSettingTab {
       },
       {
         type: 'group',
-        heading: 'API',
+        heading: 'API v2',
         items: [
           {
-            name: 'Enable REST API',
+            name: 'Enable REST API v2',
             desc: 'Start HTTP server on localhost for CRUD operations. Requires restart.',
             control: { type: 'toggle', key: 'showApi' }
           },
@@ -201,6 +201,23 @@ export class PMSettingTab extends PluginSettingTab {
               key: 'apiPort',
               defaultValue: '17171',
               placeholder: '17171'
+            }
+          },
+          {
+            type: 'render' as never,
+            name: 'Base URL',
+            desc: 'Use this URL in your API client.',
+            render: (setting: Setting) => {
+              const url = `http://localhost:${this.plugin.settings.apiPort}/api/v2`
+              setting.descEl.setText(' ')
+              const codeEl = setting.descEl.createEl('code', { text: url })
+              const btn = new Setting(setting.settingEl).addButton((btn) => {
+                btn.setIcon('copy').setTooltip('Copy URL').onClick(async () => {
+                  await navigator.clipboard.writeText(url)
+                  new Notice('API URL copied!')
+                })
+              })
+              btn.settingEl.style.marginLeft = '8px' 
             }
           }
         ]
@@ -239,7 +256,7 @@ export class PMSettingTab extends PluginSettingTab {
                   new Notice('MCP URL copied!')
                 })
               })
-              btn.settingEl.style.marginLeft = '8px' 
+              btn.settingEl.style.marginLeft = '8px'
             }
           }
         ]
