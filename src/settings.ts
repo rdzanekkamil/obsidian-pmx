@@ -241,6 +241,7 @@ export class PMSettingTab extends PluginSettingTab {
               })
               btn.settingEl.style.marginLeft = '8px'
             }
+            }
           }
         ]
       },

@@ -50,5 +50,8 @@
   "volta": {
     "node": "24.15.0",
     "pnpm": "11.5.3"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0"
   }
 }

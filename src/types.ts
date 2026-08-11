@@ -162,6 +162,10 @@ export interface PMSettings {
   tableShowSubtasks: boolean
   showTagColors: boolean
   saveTaskOnClose: boolean
+  showApi: boolean
+  apiPort: number
+  showMcp: boolean
+  mcpPort: number
   projectFilters: Record<string, PerProjectFilter>
   /** Collapsed task ids per project path. Lives here so a toggle doesn't rewrite task files. */
   collapsedTasks: Record<string, string[]>
@@ -201,6 +205,10 @@ export const DEFAULT_SETTINGS: PMSettings = {
   autoSchedule: true,
   pullForwardOnEarlyFinish: false,
   saveTaskOnClose: true,
+  showApi: false,
+  apiPort: 17171,
+  showMcp: false,
+  mcpPort: 17172,
   projectFilters: {},
   collapsedTasks: {}
 }
