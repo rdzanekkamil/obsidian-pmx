@@ -160,8 +160,6 @@ export interface PMSettings {
   kanbanShowDescriptionPreview: boolean
   showGantt: boolean
   tableShowSubtasks: boolean
-  showApi: boolean
-  apiPort: number
   showTagColors: boolean
   saveTaskOnClose: boolean
   projectFilters: Record<string, PerProjectFilter>
@@ -197,8 +195,6 @@ export const DEFAULT_SETTINGS: PMSettings = {
   kanbanShowDescriptionPreview: false,
   showGantt: true,
   tableShowSubtasks: true,
-  showApi: false,
-  apiPort: 17171,
   showTagColors: true,
   notificationsEnabled: true,
   notificationLeadDays: 2,
