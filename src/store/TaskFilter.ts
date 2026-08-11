@@ -48,6 +48,7 @@ export function matchesFilter(task: Task, filter: FilterState, statuses: StatusC
   if (filter.assignees.length && !task.assignees.some((a) => filter.assignees.includes(a))) return false
   if (filter.tags.length && !task.tags.some((t) => filter.tags.includes(t))) return false
   if (filter.dueDateFilter !== 'any' && !matchDueDateFilter(task, filter.dueDateFilter, statuses)) return false
+  if (filter.versionId && task.versionId !== filter.versionId) return false
   return true
 }
 

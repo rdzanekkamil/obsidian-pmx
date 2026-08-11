@@ -28,14 +28,15 @@ interface ProjectDraft {
   description: string
   color: string
   icon: string
+  versions: Version[]
   customFields: CustomFieldDef[]
   teamMembers: string[]
   config: ProjectConfig | undefined
 }
 
 function draftOf(project: Project): ProjectDraft {
-  const { title, description, color, icon, customFields, teamMembers, config } = project
-  const draft = { title, description, color, icon, customFields, teamMembers, config }
+  const { title, description, color, icon, versions, customFields, teamMembers, config } = project
+  const draft = { title, description, color, icon, versions, customFields, teamMembers, config }
   return JSON.parse(JSON.stringify(draft)) as ProjectDraft
 }
 

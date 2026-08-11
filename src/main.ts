@@ -1,5 +1,7 @@
 import { MarkdownView, Plugin, Notice } from 'obsidian'
 import { DEFAULT_SETTINGS, type PMSettings, type Project, type Task } from './types'
+import { startApiServer, stopApiServer } from './api/v2'
+import { startMcpServer, stopMcpServer } from './mcp/index'
 import { flattenTasks, findTask } from './store/TaskTreeOps'
 import { ProjectStore } from './store'
 import type { TaskSource } from './store'
@@ -54,6 +56,11 @@ export default class PMPlugin extends Plugin {
       startApiServer(this.store, () => this.settings, this.settings.apiPort)
     } else {
       stopApiServer()
+    }
+    if (this.settings.showMcp) {
+      startMcpServer(this.store, () => this.settings, this.settings.mcpPort)
+    } else {
+      stopMcpServer()
     }
 
     this.registerView(PM_PROJECT_VIEW_TYPE, (leaf) => new ProjectView(leaf, this))
@@ -177,6 +184,8 @@ export default class PMPlugin extends Plugin {
 
   onunload(): void {
     this.notifier.stop()
+    stopApiServer()
+    stopMcpServer()
   }
 
   async loadSettings(): Promise<void> {

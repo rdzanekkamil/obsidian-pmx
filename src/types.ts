@@ -5,7 +5,7 @@ export type TaskStatus = string
 export type TaskPriority = string
 export type GanttGranularity = 'day' | 'week' | 'month' | 'quarter'
 export type GanttWeekLabel = 'weekNumber' | 'dateRange' | 'both'
-export type ViewMode = 'table' | 'gantt' | 'kanban'
+export type ViewMode = 'table' | 'gantt' | 'kanban' | 'versions'
 export type DueDateFilter = 'any' | 'overdue' | 'this-week' | 'this-month' | 'no-date'
 export type TaskType = 'task' | 'milestone' | 'subtask'
 
@@ -29,6 +29,16 @@ export interface CustomFieldDef {
   icon?: string // emoji or lucide icon name
 }
 
+export interface Version {
+  id: string
+  name: string
+  description: string
+  plannedReleaseDate: string // YYYY-MM-DD, optional
+  releasedAt: string        // ISO date, "" = unreleased
+  taskIds: string[]         // task IDs in this version
+  createdAt: string
+}
+
 export interface Task {
   id: string
   title: string
@@ -43,7 +53,7 @@ export interface Task {
   assignees: string[]
   tags: string[]
   subtasks: Task[]
-  dependencies: string[] // task IDs
+  dependencies: string[] // task IDs this task depends on
   recurrence?: Recurrence
   timeEstimate?: number // hours
   timeLogs?: TimeLog[]
@@ -54,6 +64,18 @@ export interface Task {
   updatedAt: string
   filePath?: string // vault path to this task's .md file
   archived?: boolean // runtime only — derived from file location in Archive/ subfolder
+  /** Criteria that must be met for the task to be considered complete. */
+  acceptanceCriteria?: string
+  /** URL related to this task. */
+  url?: string
+  /** Goal of this task. */
+  goal?: string
+  /** What's blocking this task. */
+  blocker?: string
+  /** Expected result of this task. */
+  result?: string
+  /** Which version this task belongs to. */
+  versionId?: string
 }
 
 export interface Project {
@@ -63,6 +85,7 @@ export interface Project {
   color: string // hex
   icon: string // emoji
   tasks: Task[]
+  versions: Version[]
   customFields: CustomFieldDef[]
   teamMembers: string[]
   createdAt: string
@@ -88,6 +111,7 @@ export interface FilterState {
   tags: string[]
   dueDateFilter: DueDateFilter
   showArchived: boolean
+  versionId?: string
 }
 
 export interface SavedView {
@@ -160,10 +184,12 @@ export interface PMSettings {
   kanbanShowDescriptionPreview: boolean
   showGantt: boolean
   tableShowSubtasks: boolean
-  showApi: boolean
-  apiPort: number
   showTagColors: boolean
   saveTaskOnClose: boolean
+  showApi: boolean
+  apiPort: number
+  showMcp: boolean
+  mcpPort: number
   projectFilters: Record<string, PerProjectFilter>
   /** Collapsed task ids per project path. Lives here so a toggle doesn't rewrite task files. */
   collapsedTasks: Record<string, string[]>
@@ -197,14 +223,16 @@ export const DEFAULT_SETTINGS: PMSettings = {
   kanbanShowDescriptionPreview: false,
   showGantt: true,
   tableShowSubtasks: true,
-  showApi: false,
-  apiPort: 17171,
   showTagColors: true,
   notificationsEnabled: true,
   notificationLeadDays: 2,
   autoSchedule: true,
   pullForwardOnEarlyFinish: false,
   saveTaskOnClose: true,
+  showApi: false,
+  apiPort: 17171,
+  showMcp: false,
+  mcpPort: 17172,
   projectFilters: {},
   collapsedTasks: {}
 }
@@ -234,6 +262,12 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
     collapsed: false,
     createdAt: now,
     updatedAt: now,
+    acceptanceCriteria: '',
+    url: '',
+    goal: '',
+    blocker: '',
+    result: '',
+    versionId: '',
     ...overrides
   }
 }
@@ -247,6 +281,7 @@ export function makeProject(title: string, filePath: string): Project {
     color: '#8b72be',
     icon: '📋',
     tasks: [],
+    versions: [],
     customFields: [],
     teamMembers: [],
     createdAt: now,
@@ -265,6 +300,7 @@ export function makeDefaultFilter(): FilterState {
     assignees: [],
     tags: [],
     dueDateFilter: 'any',
-    showArchived: false
+    showArchived: false,
+    versionId: undefined
   }
 }

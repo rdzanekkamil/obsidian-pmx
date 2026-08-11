@@ -1,5 +1,6 @@
 import type PMPlugin from '../main'
 import type { Project, Task, TaskType, Recurrence } from '../types'
+import { makeId } from '../types'
 import { flattenTasks } from '../store/TaskTreeOps'
 import { wouldCreateCycle } from '../store/Scheduler'
 import { renderPropRow } from '../ui/FormField'
@@ -266,6 +267,94 @@ export function renderTaskFormFields(container: HTMLElement, ctx: TaskFormFields
         return cell
       },
       'percent'
+    )
+  }
+
+  // Always-visible new fields
+  renderPropRow(grid, 'URL', () => {
+    const cell = createDiv('pm-prop-value')
+    renderInputControl({
+      container: cell,
+      value: task.url ?? '',
+      inputType: 'text',
+      placeholder: 'https://…',
+      onChange: (v) => { task.url = v; }
+    })
+    return cell
+  }, 'external-link')
+
+  renderPropRow(grid, 'Goal', () => {
+    const cell = createDiv('pm-prop-value')
+    renderInputControl({
+      container: cell,
+      value: task.goal ?? '',
+      inputType: 'text',
+      placeholder: 'What is the goal of this task?',
+      onChange: (v) => { task.goal = v; }
+    })
+    return cell
+  }, 'target')
+
+  renderPropRow(grid, 'Blocker', () => {
+    const cell = createDiv('pm-prop-value')
+    renderInputControl({
+      container: cell,
+      value: task.blocker ?? '',
+      inputType: 'text',
+      placeholder: "What's blocking this task?",
+      onChange: (v) => { task.blocker = v; }
+    })
+    return cell
+  }, 'ban')
+
+  renderPropRow(grid, 'Result', () => {
+    const cell = createDiv('pm-prop-value')
+    renderInputControl({
+      container: cell,
+      value: task.result ?? '',
+      inputType: 'text',
+      placeholder: 'Expected result',
+      onChange: (v) => { task.result = v; }
+    })
+    return cell
+  }, 'check-square')
+
+  renderPropRow(grid, 'Acceptance criteria', () => {
+    const cell = createDiv('pm-prop-value pm-prop-value--textarea')
+    renderInputControl({
+      container: cell,
+      value: task.acceptanceCriteria ?? '',
+      inputType: 'textarea',
+      placeholder: 'What criteria must be met for this task to be complete?',
+      onChange: (v) => { task.acceptanceCriteria = v; }
+    })
+    return cell
+  }, 'clipboard-check')
+
+  if (project.versions.length > 0 || task.versionId) {
+    renderPropRow(
+      grid,
+      'Version',
+      () => {
+        const cell = createDiv('pm-prop-value')
+        renderSelectControl({
+          container: cell,
+          value: task.versionId ?? '',
+          options: [
+            { id: '', label: 'No version' },
+            ...project.versions.map((v) => ({
+              id: v.id,
+              label: v.releasedAt ? `${v.name} ✓` : v.name
+            }))
+          ],
+          onChange: (id) => {
+            task.versionId = id ?? ''
+            rerender()
+          }
+        })
+        return cell
+      },
+      'git-branch'
     )
   }
 
