@@ -1,5 +1,5 @@
 import { Menu, setIcon } from 'obsidian'
-import { getStatusConfig, getPriorityConfig, dueUrgency, isTerminalStatus, safeAsync, formatDateLong } from '../../utils'
+import { getStatusConfig, getPriorityConfig, dueUrgency, isTerminalStatus, formatDateLong } from '../../utils'
 import type { Task } from '../../types'
 import type { TableContext } from './TableRenderer'
 import { openTaskModal } from '../../ui/ModalFactory'

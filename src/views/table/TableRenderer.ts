@@ -193,8 +193,7 @@ function renderWindowRows(ctx: TableContext): void {
     spacer.style.height = `${(rows.length - end) * state.rowHeight}px`
   }
 
-  const addRow = list.createDiv('pm-table-add-row')
-  renderAddButton(addRow, 'Add task', () => {
+  renderAddButton(list.createDiv('pm-table-add-row'), 'Add task', () => {
     openTaskModal(ctx.plugin, ctx.project, { onSave: () => ctx.onRefresh() })
   })
 
