@@ -127,18 +127,6 @@ export class PMSettingTab extends PluginSettingTab {
       },
       {
         type: 'group',
-        heading: 'Table',
-        items: [
-          {
-            name: 'Show subtasks',
-            desc: 'Display subtasks as nested rows.',
-            aliases: ['table'],
-            control: { type: 'toggle', key: 'tableShowSubtasks' }
-          }
-        ]
-      },
-      {
-        type: 'group',
         heading: 'Scheduling',
         items: [
           {

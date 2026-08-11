@@ -183,7 +183,6 @@ export interface PMSettings {
   kanbanShowSubtasks: boolean
   kanbanShowDescriptionPreview: boolean
   showGantt: boolean
-  tableShowSubtasks: boolean
   showTagColors: boolean
   saveTaskOnClose: boolean
   showApi: boolean
@@ -222,7 +221,6 @@ export const DEFAULT_SETTINGS: PMSettings = {
   kanbanShowSubtasks: false,
   kanbanShowDescriptionPreview: false,
   showGantt: true,
-  tableShowSubtasks: true,
   showTagColors: true,
   notificationsEnabled: true,
   notificationLeadDays: 2,

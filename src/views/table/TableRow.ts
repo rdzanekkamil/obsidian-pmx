@@ -49,16 +49,7 @@ export function renderTaskRow(tbody: HTMLElement, task: Task, depth: number, ctx
       await ctx.plugin.store.updateTask(ctx.project, task.id, { title })
       await ctx.onRefresh()
     },
-    onAddSubtask: ctx.plugin.settings.tableShowSubtasks
-      ? () => {
-          openTaskModal(ctx.plugin, ctx.project, {
-            parentId: task.id,
-            onSave: async () => {
-              await ctx.onRefresh()
-            }
-          })
-        }
-      : undefined
+    onAddSubtask: undefined
   })
 
   new StatusCell(row, {

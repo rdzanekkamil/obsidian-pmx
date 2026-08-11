@@ -1,13 +1,39 @@
-/* The two plugin tokens with no Obsidian equivalent. Both are theme-dependent and
-   overridden for dark mode in widgets.css; everything else uses theme variables directly. */
+/* ── Plugin design tokens ───────────────────────────────────────────────
+   Dark theme uses the GitHub-dark-inspired palette below.
+   Light theme: vars fall back to Obsidian theme variables.
+   Both use --pm-border, --pm-text, --pm-text-muted for consistency. */
 .pm-root {
   --pm-ghost-border: rgba(0, 0, 0, 0.06);
   --pm-shadow-ambient: rgba(0, 0, 0, 0.06);
 
+  /* Semantic border / text — overridden in .theme-dark below */
+  --pm-border: var(--background-modifier-border);
+  --pm-text: var(--text-normal);
+  --pm-text-muted: var(--text-muted);
+
   font-family: var(--font-interface);
-  color: var(--text-normal);
+  color: var(--pm-text);
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+}
+
+/* ── Dark theme tokens (GitHub dark-inspired) ─────────────────────────── */
+.theme-dark .pm-root {
+  --pm-bg: #0d1117;
+  --pm-bg-elevated: #161b22;
+  --pm-bg-subtle: #21262d;
+  --pm-border: #30363d;
+  --pm-border-muted: #21262d;
+  --pm-text: #e6edf3;
+  --pm-text-muted: #7d8590;
+  --pm-text-faint: #484f58;
+  --pm-accent: #58a6ff;
+  --pm-accent-hover: #79b8ff;
+  --pm-success: #3fb950;
+  --pm-warning: #d29922;
+  --pm-danger: #f85149;
+  --pm-glow-green: rgba(63, 185, 80, 0.4);
+  --pm-glow-blue: rgba(88, 166, 255, 0.3);
 }
