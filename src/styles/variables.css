@@ -19,21 +19,21 @@
   overflow: hidden;
 }
 
-/* ── Dark theme tokens (GitHub dark-inspired) ─────────────────────────── */
+/* ── Dark theme tokens (brightened GitHub dark-inspired) ─────────────── */
 .theme-dark .pm-root {
-  --pm-bg: #0d1117;
-  --pm-bg-elevated: #161b22;
-  --pm-bg-subtle: #21262d;
-  --pm-border: #30363d;
-  --pm-border-muted: #21262d;
-  --pm-text: #e6edf3;
-  --pm-text-muted: #7d8590;
-  --pm-text-faint: #484f58;
+  --pm-bg: #1a1d26;
+  --pm-bg-elevated: #222733;
+  --pm-bg-subtle: #2b303d;
+  --pm-border: #3d4456;
+  --pm-border-muted: #2b303d;
+  --pm-text: #eef0f4;
+  --pm-text-muted: #9aa3b5;
+  --pm-text-faint: #5c6478;
   --pm-accent: #58a6ff;
   --pm-accent-hover: #79b8ff;
   --pm-success: #3fb950;
   --pm-warning: #d29922;
   --pm-danger: #f85149;
-  --pm-glow-green: rgba(63, 185, 80, 0.4);
-  --pm-glow-blue: rgba(88, 166, 255, 0.3);
+  --pm-glow-green: rgba(63, 185, 80, 0.35);
+  --pm-glow-blue: rgba(88, 166, 255, 0.25);
 }

@@ -1,88 +1,52 @@
+/* === Table view — card-style rows === */
+
 .pm-table-view {
   display: flex;
   flex-direction: column;
   height: 100%;
+  background: var(--pm-bg, var(--background-primary));
 }
 
+/* ── Bulk bar ─────────────────────────────────────────────────── */
 .pm-bulk-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  margin: 0 16px 6px;
+  margin: 0 24px 6px;
   background: color-mix(in srgb, var(--interactive-accent) 8%, var(--background-secondary));
-  border: 1px dashed var(--background-modifier-border);
-  border-radius: var(--radius-m);
+  border: 1px dashed var(--pm-border);
+  border-radius: 4px;
   flex-shrink: 0;
   animation: pm-bulk-bar-in 0.15s ease-out;
 }
 @keyframes pm-bulk-bar-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.pm-bulk-bar-left {
+.pm-bulk-bar-left,
+.pm-bulk-bar-right {
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.pm-bulk-bar-right {
-  display: flex;
-  align-items: center;
-}
 .pm-bulk-bar-count {
   font-size: 12px;
   font-weight: 600;
-  color: var(--interactive-accent);
+  color: var(--pm-accent);
   padding-right: 4px;
 }
 
-/* `button` prefix outranks core button chrome, as in pm-prop-add. */
-button.pm-chip-btn,
-.pm-chip {
-  display: inline-flex;
-  align-items: center;
-  border-radius: var(--radius-s);
-  font-size: var(--font-ui-smaller);
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-/* The etched input-shadow chrome comes from app.css. */
-button.pm-chip-btn {
-  height: auto;
-  padding: 4px 10px;
-  color: var(--text-muted);
-  transition:
-    background 0.1s,
-    color 0.1s;
-}
-button.pm-chip-btn:focus-visible {
-  outline: 2px solid var(--interactive-accent);
-  outline-offset: 2px;
-}
-button.pm-chip-btn--active {
-  background: color-mix(in srgb, var(--interactive-accent) 12%, transparent);
-  color: var(--text-accent);
-}
-button.pm-chip-btn--active:hover {
-  background: color-mix(in srgb, var(--interactive-accent) 18%, transparent);
-}
-
-.pm-table-row--selected {
-  background: color-mix(in srgb, var(--interactive-accent) 10%, transparent);
-  box-shadow: inset 3px 0 0 var(--interactive-accent);
-}
-
+/* ── Table layout: sticky header + scrollable body ──────────── */
 .pm-table-wrapper {
   flex: 1;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
+.pm-table-wrapper::-webkit-scrollbar { width: 5px; }
+.pm-table-wrapper::-webkit-scrollbar-track { background: transparent; }
+.pm-table-wrapper::-webkit-scrollbar-thumb { background: var(--pm-border); border-radius: 3px; }
+.pm-table-wrapper::-webkit-scrollbar-thumb:hover { background: var(--pm-accent); }
 
 .pm-table {
   width: 100%;
@@ -90,18 +54,20 @@ button.pm-chip-btn--active:hover {
   font-size: 13px;
 }
 
+/* ── Header ───────────────────────────────────────────────────── */
 .pm-table thead th {
   position: sticky;
   top: 0;
-  background: var(--background-primary);
-  border-bottom: 2px solid var(--background-modifier-border);
-  padding: 8px 10px;
+  background: var(--pm-bg, var(--background-primary));
+  border-bottom: 1px solid var(--pm-border);
+  padding: 10px 12px;
   text-align: left;
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  color: var(--pm-text-muted);
   white-space: nowrap;
   z-index: 10;
   user-select: none;
@@ -110,98 +76,58 @@ button.pm-chip-btn--active:hover {
   cursor: pointer;
 }
 .pm-table-th-sortable:hover {
-  color: var(--text-normal);
+  color: var(--pm-accent);
+}
+.pm-sort-indicator {
+  color: var(--pm-accent);
 }
 
+/* ── Row ─────────────────────────────────────────────────────── */
 .pm-table-row {
-  border-bottom: 1px solid var(--background-modifier-border);
+  border-bottom: 1px solid var(--pm-border-muted);
   transition: background 0.1s;
+  cursor: default;
 }
-.pm-table-row:not(.pm-table-row--selected):hover {
-  background: color-mix(in srgb, var(--interactive-accent) 5%, transparent);
+.pm-table-row:hover {
+  background: var(--pm-bg-elevated);
+}
+.pm-table-row--selected {
+  background: color-mix(in srgb, var(--pm-accent) 8%, transparent);
+  box-shadow: inset 3px 0 0 var(--pm-accent);
 }
 .pm-table-row--done {
-  opacity: 0.55;
+  opacity: 0.45;
 }
 .pm-table-row--archived {
-  opacity: 0.45;
+  opacity: 0.4;
   font-style: italic;
 }
 
+/* ── Cell ────────────────────────────────────────────────────── */
 .pm-table-cell {
-  padding: 8px 10px;
+  padding: 11px 12px;
   vertical-align: middle;
 }
 .pm-table-cell-title {
-  padding: 8px 10px;
+  padding: 11px 12px;
   vertical-align: middle;
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
-  min-width: 180px;
-}
-.pm-table-cell-select {
-  width: 32px;
-  text-align: center;
-  padding: 0 4px;
-  vertical-align: middle;
-}
-.pm-table-cell-select input[type='checkbox'] {
-  margin: 0;
-  cursor: pointer;
-}
-.pm-table-row .pm-table-cell-select input[type='checkbox'] {
-  opacity: 0;
-  transition: opacity 0.15s;
-  pointer-events: none;
-}
-.pm-table-row:hover .pm-table-cell-select input[type='checkbox'],
-.pm-table-row .pm-table-cell-select input[type='checkbox']:checked {
-  opacity: 1;
-  pointer-events: auto;
-}
-.pm-table-cell-expand {
-  width: 32px;
-  text-align: center;
-  padding: 0;
+  min-width: 220px;
 }
 
-.pm-collapse-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--text-muted);
-  flex-shrink: 0;
-  --icon-size: 14px;
-}
-.pm-collapse-toggle:hover {
-  color: var(--text-normal);
-}
-.pm-collapse-toggle.is-collapsed .svg-icon {
-  transform: rotate(-90deg);
-}
-.pm-table-cell-progress {
-  min-width: 120px;
-}
-.pm-table-cell-actions {
-  width: 40px;
-  text-align: center;
-}
-.pm-table-cell-assignees {
-  min-width: 80px;
-}
-
+/* ── Title cell ──────────────────────────────────────────────── */
 .pm-task-title-text {
   cursor: pointer;
   font-weight: 500;
   line-height: 1.4;
+  color: var(--pm-text);
+  flex: 1;
 }
 .pm-task-title-text:hover {
-  color: var(--interactive-accent);
+  color: var(--pm-accent);
 }
-
 .pm-table-tags {
   display: flex;
   gap: 4px;
@@ -209,6 +135,51 @@ button.pm-chip-btn--active:hover {
   margin-top: 2px;
 }
 
+/* ── Status cell ─────────────────────────────────────────────── */
+.pm-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 4px;
+  border: 1px solid;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.pm-status-badge:hover { opacity: 0.8; }
+.pm-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Priority cell ───────────────────────────────────────────── */
+.pm-priority-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.pm-priority-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+/* ── Assignees cell ──────────────────────────────────────────── */
 .pm-avatar {
   display: inline-flex;
   align-items: center;
@@ -219,7 +190,7 @@ button.pm-chip-btn--active:hover {
   font-size: 10px;
   font-weight: 700;
   color: var(--text-on-accent);
-  border: 2px solid var(--background-primary);
+  border: 2px solid var(--pm-bg, var(--background-primary));
   flex-shrink: 0;
 }
 .pm-avatar--sm {
@@ -228,8 +199,8 @@ button.pm-chip-btn--active:hover {
   font-size: 9px;
 }
 .pm-avatar--more {
-  background: var(--background-modifier-border);
-  color: var(--text-muted);
+  background: var(--pm-bg-subtle);
+  color: var(--pm-text-muted);
   font-size: 10px;
 }
 .pm-avatar-stack {
@@ -240,39 +211,59 @@ button.pm-chip-btn--active:hover {
   margin-left: -6px;
 }
 
+/* ── Due date cell ───────────────────────────────────────────── */
+.pm-due-text {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--pm-text-muted);
+  white-space: nowrap;
+}
+.pm-due-text--overdue {
+  color: var(--pm-danger);
+}
+.pm-due-text--soon {
+  color: var(--pm-warning);
+}
+
+/* ── Progress cell ───────────────────────────────────────────── */
 .pm-progress {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 90px;
 }
 .pm-progress-track {
   flex: 1;
-  height: 6px;
-  background: var(--background-modifier-border);
+  height: 4px;
+  background: var(--pm-border);
   border-radius: 99px;
   overflow: hidden;
-}
-.pm-progress--sm .pm-progress-track {
-  height: 3px;
 }
 .pm-progress-fill {
   height: 100%;
   border-radius: 99px;
-  background: var(--pm-progress-color, var(--interactive-accent));
+  background: var(--pm-progress-color, var(--pm-accent));
   transition: width 0.3s ease;
 }
 .pm-progress-label {
-  font-size: var(--font-ui-smaller);
-  color: var(--text-muted);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--pm-text-muted);
   min-width: 28px;
+  text-align: right;
 }
 
+/* ── Actions cell ────────────────────────────────────────────── */
+.pm-table-cell-actions {
+  width: 40px;
+  text-align: center;
+}
 .pm-icon-btn--hover-only {
   opacity: 0;
   transition: opacity 0.15s;
+  color: var(--pm-text-muted);
 }
 .pm-table-row:hover .pm-icon-btn--hover-only,
-.pm-modal-subtask-row:hover .pm-icon-btn--hover-only,
 .pm-gantt-label-row:hover .pm-icon-btn--hover-only {
   opacity: 1;
 }
@@ -280,8 +271,36 @@ button.pm-chip-btn--active:hover {
   opacity: 1;
 }
 
+/* ── Chips (shared) ──────────────────────────────────────────── */
+button.pm-chip-btn,
 .pm-chip {
-  --pm-chip-color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-s);
+  font-size: var(--font-ui-smaller);
+  font-weight: 500;
+  white-space: nowrap;
+}
+button.pm-chip-btn {
+  height: auto;
+  padding: 4px 10px;
+  color: var(--pm-text-muted);
+  transition: background 0.1s, color 0.1s;
+}
+button.pm-chip-btn:focus-visible {
+  outline: 2px solid var(--pm-accent);
+  outline-offset: 2px;
+}
+button.pm-chip-btn--active {
+  background: color-mix(in srgb, var(--pm-accent) 12%, transparent);
+  color: var(--pm-accent);
+}
+button.pm-chip-btn--active:hover {
+  background: color-mix(in srgb, var(--pm-accent) 18%, transparent);
+}
+
+.pm-chip {
+  --pm-chip-color: var(--pm-text-muted);
   gap: 6px;
   padding: 2px 9px;
   line-height: 1.5;
@@ -295,23 +314,19 @@ button.pm-chip-btn--active:hover {
   border-color: color-mix(in srgb, var(--pm-chip-color) 20%, transparent);
 }
 .pm-chip--outline {
-  border-color: var(--background-modifier-border);
-}
-.pm-chip--plain {
-  color: var(--text-normal);
+  border-color: var(--pm-border);
 }
 .pm-chip--tag {
   padding: 2px 6px;
   border-radius: 5px;
   font-size: 11px;
   gap: 4px;
-  /* the dot carries the tag color; the label stays quiet */
-  color: var(--text-muted);
+  color: var(--pm-text-muted);
 }
 .pm-chip--tag .pm-chip-dot {
   width: 5px;
   height: 5px;
-  /* The tall line-height would otherwise center the dot above the label's visual weight. */
+  border-radius: 50%;
   position: relative;
   top: 0.75px;
 }
@@ -320,13 +335,8 @@ button.pm-chip-btn--active:hover {
   font-size: 10px;
   font-weight: 600;
 }
-.pm-chip--pill,
-button.pm-chip-btn--pill {
-  border-radius: 99px;
-}
-.pm-chip--strong {
-  font-weight: 600;
-}
+.pm-chip--pill { border-radius: 99px; }
+.pm-chip--strong { font-weight: 600; }
 .pm-chip-dot {
   width: 6px;
   height: 6px;
@@ -342,12 +352,8 @@ button.pm-chip-btn--pill {
   --icon-size: 15px;
   color: var(--pm-chip-color);
 }
-.pm-chip--interactive {
-  cursor: pointer;
-}
-.pm-chip--interactive:hover {
-  background: var(--background-modifier-hover);
-}
+.pm-chip--interactive { cursor: pointer; }
+.pm-chip--interactive:hover { background: var(--pm-bg-elevated); }
 .pm-chip--solid.pm-chip--interactive:hover {
   background: color-mix(in srgb, var(--pm-chip-color) 18%, transparent);
 }
@@ -361,30 +367,58 @@ button.pm-chip-rm {
   color: inherit;
   padding: 0;
   margin: 0;
-  /* Core's `button { height: var(--input-height) }` would stretch the whole chip. */
   height: auto;
   box-shadow: none;
   opacity: 0.6;
 }
-.pm-chip-rm:hover {
-  opacity: 1;
-  color: var(--text-error, var(--color-red));
-}
-.pm-chip-rm svg {
-  width: 12px;
-  height: 12px;
-}
+.pm-chip-rm:hover { opacity: 1; color: var(--pm-danger); }
+.pm-chip-rm svg { width: 12px; height: 12px; }
 .pm-suggest-create {
-  color: var(--text-accent);
+  color: var(--pm-accent);
   font-style: italic;
 }
 
-/* Virtual-scroll spacers; the renderer sets their height inline. */
+/* ── Add row ─────────────────────────────────────────────────── */
+.pm-table-add-row td {
+  padding: 10px 12px;
+}
 .pm-table-spacer td {
   padding: 0;
   border: 0;
 }
 
-.pm-table-add-row td {
-  padding: 8px 10px;
+/* ── Collapse toggle ─────────────────────────────────────────── */
+.pm-collapse-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--pm-text-muted);
+  flex-shrink: 0;
+  --icon-size: 14px;
+}
+.pm-collapse-toggle:hover { color: var(--pm-text); }
+.pm-collapse-toggle.is-collapsed .svg-icon { transform: rotate(-90deg); }
+
+.pm-table-cell-select {
+  width: 32px;
+  text-align: center;
+  padding: 0 4px;
+  vertical-align: middle;
+}
+.pm-table-cell-select input[type='checkbox'] { margin: 0; cursor: pointer; }
+.pm-table-row .pm-table-cell-select input[type='checkbox'] {
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.pm-table-row:hover .pm-table-cell-select input[type='checkbox'],
+.pm-table-row .pm-table-cell-select input[type='checkbox']:checked {
+  opacity: 1;
+  pointer-events: auto;
+}
+.pm-table-cell-expand {
+  width: 32px;
+  text-align: center;
+  padding: 0;
 }
