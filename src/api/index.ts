@@ -81,8 +81,8 @@ const SPEC = {
   info: { title: 'Project ManagerX REST API', version: '1.0.0', description: 'CRUD API for Projects, Tasks, and Subtasks.' },
   servers: [{ url: 'http://localhost:{port}', variables: { port: { default: '17171' } } }],
   paths: {
-    '/projects': { get: { summary: 'List all projects (no tasks)', tags: ['Projects'], responses: { 200: { description: 'Array of project summaries' } } }, post: { summary: 'Create a project', tags: ['Projects'], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['title'], properties: { title: { type: 'string' } } } } } }, responses: { 201: { description: 'Created project' } } } },
-    '/projects/{id}': { get: { summary: 'Get a project (use ?includeTasks=true for tasks)', tags: ['Projects'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }, { name: 'includeTasks', in: 'query', schema: { type: 'string', enum: ['true'] }, description: 'Include tasks' }], responses: { 200: { description: 'Project' }, 404: { description: 'Not found' } } }, put: { summary: 'Update a project', tags: ['Projects'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Updated project' } } }, delete: { summary: 'Delete a project', tags: ['Projects'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 204: { description: 'Deleted' } } } },
+    '/projects': { get: { summary: 'List all projects (id, title, description)', tags: ['Projects'], responses: { 200: { description: 'Array of project summaries' } } }, post: { summary: 'Create a project', tags: ['Projects'], requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['title'], properties: { title: { type: 'string' } } } } } }, responses: { 201: { description: 'Created project' } } } },
+    '/projects/{id}': { get: { summary: 'Get project (id,title,description; use ?includeTasks=true for full)', tags: ['Projects'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }, { name: 'includeTasks', in: 'query', schema: { type: 'string', enum: ['true'] }, description: 'Include tasks' }], responses: { 200: { description: 'Project' }, 404: { description: 'Not found' } } }, put: { summary: 'Update a project', tags: ['Projects'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Updated project' } } }, delete: { summary: 'Delete a project', tags: ['Projects'], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string' } }], responses: { 204: { description: 'Deleted' } } } },
     '/projects/{projectId}/tasks': { get: { summary: 'List tasks (flattened)', tags: ['Tasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Array of tasks' } } }, post: { summary: 'Create a task', tags: ['Tasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 201: { description: 'Created task' } } } },
     '/projects/{projectId}/tasks/{taskId}': { get: { summary: 'Get a task', tags: ['Tasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }, { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Task' } } }, put: { summary: 'Update a task', tags: ['Tasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }, { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 200: { description: 'Updated task' } } }, delete: { summary: 'Delete a task', tags: ['Tasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }, { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 204: { description: 'Deleted' } } } },
     '/projects/{projectId}/tasks/{taskId}/subtasks': { post: { summary: 'Add subtask', tags: ['Subtasks'], parameters: [{ name: 'projectId', in: 'path', required: true, schema: { type: 'string' } }, { name: 'taskId', in: 'path', required: true, schema: { type: 'string' } }], responses: { 201: { description: 'Created subtask' } } } }
@@ -145,7 +145,7 @@ function projectsRouter(store: TaskSource, settings: () => PMSettings) {
   const r = new Router()
   r.get('/projects', async (_req, res) => {
     const projects = await store.loadAllProjects(settings().projectsFolder)
-    const list = projects.map(({ id, title, path, created, updated }: { id: string; title: string; path: string; created: number; updated: number }) => ({ id, title, path, created, updated }))
+    const list = projects.map(({ id, title, description }: { id: string; title: string; description: string }) => ({ id, title, description }))
     json(res, list)
   })
   r.get('/projects/:id', async (req, res, p) => {
@@ -156,8 +156,8 @@ function projectsRouter(store: TaskSource, settings: () => PMSettings) {
     if (url.searchParams.get('includeTasks') === 'true') {
       json(res, project)
     } else {
-      const { id, title, path, created, updated } = project
-      json(res, { id, title, path, created, updated })
+      const { id, title, description } = project
+      json(res, { id, title, description })
     }
   })
   r.post('/projects', async (req, res) => {
