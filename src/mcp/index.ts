@@ -317,7 +317,7 @@ export function startMcpServer(store: TaskSource, settings: () => PMSettings, po
         if (parsed.method === 'initialize') {
           jsonResponse(res, 200, {
             jsonrpc: '2.0', id: parsed.id ?? null,
-            result: { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'project-managerx', version: '2.0.0' } }
+            result: { protocolVersion: '2024-11-05', capabilities: { tools: { listChanged: true } }, serverInfo: { name: 'project-managerx', version: '2.0.0' } }
           })
           return
         }
@@ -373,6 +373,7 @@ export function startMcpServer(store: TaskSource, settings: () => PMSettings, po
             jsonResponse(res, 200, { jsonrpc: '2.0', id: parsed.id ?? null, result: { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] } })
           } catch (err) {
             const msg = err instanceof Error ? err.message : String(err)
+            console.error('[PMX MCP] tool error:', msg, err instanceof Error ? err.stack : '')
             jsonResponse(res, 200, { jsonrpc: '2.0', id: parsed.id ?? null, error: { code: -32603, message: msg } })
           }
           return
@@ -389,6 +390,54 @@ export function startMcpServer(store: TaskSource, settings: () => PMSettings, po
         sessions.set(sessionId, emitter)
       }
 
+      // Handle these methods even when session exists (stateless mode)
+      if (parsed.method === 'initialize') {
+        jsonResponse(res, 200, {
+          jsonrpc: '2.0', id: parsed.id ?? null,
+          result: { protocolVersion: '2024-11-05', capabilities: { tools: { listChanged: true } }, serverInfo: { name: 'project-managerx', version: '2.0.0' } }
+        })
+        return
+      }
+
+      if (parsed.method === 'ping') {
+        jsonResponse(res, 200, { jsonrpc: '2.0', id: parsed.id ?? null, result: {} })
+        return
+      }
+
+      if (parsed.method === 'tools/list') {
+        jsonResponse(res, 200, {
+          jsonrpc: '2.0', id: parsed.id ?? null,
+          result: {
+            tools: [
+              { name: 'list_projects', description: 'List all projects (no tasks)', inputSchema: { type: 'object', properties: {} } },
+              { name: 'get_project', description: 'Get a project by id', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
+              { name: 'create_project', description: 'Create a new project', inputSchema: { type: 'object', properties: { title: { type: 'string' }, description: { type: 'string' }, color: { type: 'string' }, icon: { type: 'string' } }, required: ['title'] } },
+              { name: 'update_project', description: 'Update a project', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, additionalProperties: true } },
+              { name: 'delete_project', description: 'Delete a project', inputSchema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] } },
+              { name: 'list_tasks', description: 'List all tasks in a project', inputSchema: { type: 'object', properties: { projectId: { type: 'string' } }, required: ['projectId'] } },
+              { name: 'get_task', description: 'Get a task', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, taskId: { type: 'string' } }, required: ['projectId', 'taskId'] } },
+              { name: 'create_task', description: 'Create a task', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, parentId: { type: 'string' } }, additionalProperties: true } },
+              { name: 'update_task', description: 'Update a task', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, taskId: { type: 'string' } }, additionalProperties: true } },
+              { name: 'delete_task', description: 'Delete a task', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, taskId: { type: 'string' } }, required: ['projectId', 'taskId'] } },
+              { name: 'change_task_status', description: 'Change task status', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, taskId: { type: 'string' }, status: { type: 'string' } }, required: ['projectId', 'taskId', 'status'] } },
+              { name: 'assign_task_version', description: 'Assign task to a version', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, taskId: { type: 'string' }, versionId: { type: 'string', nullable: true } }, required: ['projectId', 'taskId'] } },
+              { name: 'list_subtasks', description: 'List subtasks of a task', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, parentId: { type: 'string' } }, required: ['projectId', 'parentId'] } },
+              { name: 'create_subtask', description: 'Create a subtask', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, parentId: { type: 'string' } }, additionalProperties: true } },
+              { name: 'update_subtask', description: 'Update a subtask', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, subtaskId: { type: 'string' } }, additionalProperties: true } },
+              { name: 'delete_subtask', description: 'Delete a subtask', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, subtaskId: { type: 'string' } }, required: ['projectId', 'subtaskId'] } },
+              { name: 'list_versions', description: 'List versions in a project', inputSchema: { type: 'object', properties: { projectId: { type: 'string' } }, required: ['projectId'] } },
+              { name: 'get_version', description: 'Get a version', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, versionId: { type: 'string' } }, required: ['projectId', 'versionId'] } },
+              { name: 'create_version', description: 'Create a version', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, name: { type: 'string' }, description: { type: 'string' }, plannedReleaseDate: { type: 'string' } }, required: ['projectId', 'name'] } },
+              { name: 'update_version', description: 'Update a version', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, versionId: { type: 'string' } }, additionalProperties: true } },
+              { name: 'delete_version', description: 'Delete a version', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, versionId: { type: 'string' } }, required: ['projectId', 'versionId'] } },
+              { name: 'release_version', description: 'Release a version', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, versionId: { type: 'string' } }, required: ['projectId', 'versionId'] } },
+              { name: 'set_project_custom_fields', description: 'Set project custom fields', inputSchema: { type: 'object', properties: { projectId: { type: 'string' }, customFields: { type: 'array' } }, required: ['projectId', 'customFields'] } }
+            ]
+          }
+        })
+        return
+      }
+
       if (parsed.method === 'tools/call') {
         const { name, arguments: args = {} } = parsed.params as { name: string; arguments: Record<string, unknown> }
         const handler = tools[name]
@@ -401,6 +450,7 @@ export function startMcpServer(store: TaskSource, settings: () => PMSettings, po
           jsonResponse(res, 200, { jsonrpc: '2.0', id: parsed.id ?? null, result: { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] } })
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err)
+          console.error('[PMX MCP] tool error:', msg, err instanceof Error ? err.stack : '')
           jsonResponse(res, 200, { jsonrpc: '2.0', id: parsed.id ?? null, error: { code: -32603, message: msg } })
         }
         return
