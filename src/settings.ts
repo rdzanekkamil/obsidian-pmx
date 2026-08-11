@@ -239,8 +239,7 @@ export class PMSettingTab extends PluginSettingTab {
                   new Notice('MCP URL copied!')
                 })
               })
-              btn.settingEl.style.marginLeft = '8px'
-            }
+              btn.settingEl.style.marginLeft = '8px' 
             }
           }
         ]
