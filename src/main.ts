@@ -1,7 +1,7 @@
 import { MarkdownView, Plugin, Notice } from 'obsidian'
 import { DEFAULT_SETTINGS, type PMSettings, type Project, type Task } from './types'
 import { startApiServer, stopApiServer } from './api/v2'
-import { startMcpServer, stopMcpServer } from './mcp'
+import { startMcpServer, stopMcpServer } from './mcp/index'
 import { flattenTasks, findTask } from './store/TaskTreeOps'
 import { ProjectStore } from './store'
 import type { TaskSource } from './store'

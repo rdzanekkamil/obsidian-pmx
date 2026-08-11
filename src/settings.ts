@@ -263,6 +263,43 @@ export class PMSettingTab extends PluginSettingTab {
       },
       {
         type: 'group',
+        heading: 'MCP v2',
+        items: [
+          {
+            name: 'Enable MCP Server',
+            desc: 'Start MCP server for AI tool access via HTTP. Direct store access, same interface as REST API v2. Requires restart.',
+            control: { type: 'toggle', key: 'showMcp' }
+          },
+          {
+            name: 'Port',
+            desc: 'TCP port. Default: 17172.',
+            control: {
+              type: 'text',
+              key: 'mcpPort',
+              defaultValue: '17172',
+              placeholder: '17172'
+            }
+          },
+          {
+            type: 'render' as never,
+            name: 'MCP Endpoint',
+            desc: 'Use this URL in your AI harness.',
+            render: (setting: Setting) => {
+              const url = `http://localhost:${this.plugin.settings.mcpPort}/mcp`
+              setting.descEl.setText(' ')
+              setting.descEl.createEl('code', { text: url })
+              new Setting(setting.settingEl).addButton((btn) => {
+                btn.setIcon('copy').setTooltip('Copy URL').onClick(async () => {
+                  await navigator.clipboard.writeText(url)
+                  new Notice('MCP URL copied!')
+                })
+              })
+            }
+          }
+        ]
+      },
+      {
+        type: 'group',
         heading: 'Task fields',
         items: [this.statusesPage(), this.prioritiesPage(), this.teamMembersPage()]
       },
