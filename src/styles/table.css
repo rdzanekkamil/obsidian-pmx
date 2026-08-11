@@ -39,6 +39,9 @@
   border-bottom: 1px solid var(--pm-border);
   background: var(--pm-bg);
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 .pm-th {
   font-size: 10px;

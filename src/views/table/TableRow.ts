@@ -1,5 +1,6 @@
-import { Menu, setIcon } from 'obsidian'
-import { getStatusConfig, getPriorityConfig, dueUrgency, isTerminalStatus, formatDateLong } from '../../utils'
+import { Menu, setIcon, setTooltip } from 'obsidian'
+import { getStatusConfig, getPriorityConfig, dueUrgency, isTerminalStatus, formatDateLong, isIconName, formatBadgeText } from '../../utils'
+import { PRIORITY_CHEVRONS } from '../../ui/StatusBadge'
 import type { Task } from '../../types'
 import type { TableContext } from './TableRenderer'
 import { openTaskModal } from '../../ui/ModalFactory'
@@ -69,10 +70,10 @@ export function renderTaskRow(list: HTMLElement, task: Task, depth: number, ctx:
   // Type chips
   if (task.type === 'milestone' || task.type === 'subtask' || task.recurrence || task.archived) {
     const chips = titleMain.createDiv('pm-task-type-chips')
-    if (task.type === 'milestone') chip(chips, 'M', 'var(--color-purple)', 'Milestone')
-    if (task.type === 'subtask')   chip(chips, 'Sub', 'var(--color-green)', 'Subtask')
-    if (task.recurrence)           chip(chips, 'R', 'var(--color-blue)', 'Recurring')
-    if (task.archived)             chip(chips, 'Archived', 'var(--pm-text-muted)', 'Archived')
+    if (task.type === 'milestone') chip(chips, 'M', '#9775fa', 'Milestone')
+    if (task.type === 'subtask')   chip(chips, 'Sub', '#2f9e44', 'Subtask')
+    if (task.recurrence)           chip(chips, 'R', '#1c7ed6', 'Recurring')
+    if (task.archived)             chip(chips, 'Archived', '#868e96', 'Archived')
   }
 
   // Tags
@@ -81,19 +82,32 @@ export function renderTaskRow(list: HTMLElement, task: Task, depth: number, ctx:
     for (const tag of task.tags) {
       const dot = tagRow.createSpan('pm-chip-dot')
       dot.style.background = tagColor(tag)
-      tagRow.createSpan({ text: tag, cls: 'pm-chip pm-chip--tag', css: { paddingLeft: '4px', fontSize: '11px', color: 'var(--pm-text-muted)' } })
+      const tagSpan = tagRow.createSpan('pm-chip pm-chip--tag')
+      tagSpan.style.paddingLeft = '4px'
+      tagSpan.style.fontSize = '11px'
+      tagSpan.style.color = 'var(--pm-text-muted)'
+      tagSpan.setText(tag)
     }
   }
 
   // Status
   const statusCell = row.createDiv('pm-task-row__status')
   const statusBadge = statusCell.createDiv('pm-status-badge')
-  statusBadge.style.borderColor = `color-mix(in srgb, ${statusConfig?.color ?? '#888'} 40%, transparent)`
-  statusBadge.style.color = statusConfig?.color ?? 'var(--pm-text-muted)'
-  statusBadge.style.background = `color-mix(in srgb, ${statusConfig?.color ?? '#888'} 10%, transparent)`
-  const statusDot = statusBadge.createSpan('pm-status-dot')
-  statusDot.style.background = statusConfig?.color ?? 'var(--pm-text-muted)'
-  statusBadge.createSpan({ text: statusConfig?.label ?? task.status })
+  const color = statusConfig?.color ?? '#868e96'
+  statusBadge.style.borderColor = `color-mix(in srgb, ${color} 40%, transparent)`
+  statusBadge.style.color = color
+  statusBadge.style.background = `color-mix(in srgb, ${color} 10%, transparent)`
+  const hasIcon = statusConfig?.icon && isIconName(statusConfig.icon)
+  if (!hasIcon) {
+    const statusDot = statusBadge.createSpan('pm-status-dot')
+    statusDot.style.background = color
+  }
+  if (hasIcon) {
+    const iconSpan = statusBadge.createSpan('pm-status-icon')
+    setIcon(iconSpan, statusConfig!.icon!)
+  }
+  const labelText = formatBadgeText(statusConfig?.icon, statusConfig?.label ?? task.status)
+  statusBadge.createSpan({ text: labelText })
   statusBadge.addEventListener('click', (e) => {
     e.stopPropagation()
     const menu = new Menu()
@@ -112,10 +126,16 @@ export function renderTaskRow(list: HTMLElement, task: Task, depth: number, ctx:
   // Priority
   const priorityCell = row.createDiv('pm-task-row__priority')
   const prioChip = priorityCell.createDiv('pm-priority-chip')
-  prioChip.style.background = `color-mix(in srgb, ${priorityConfig?.color ?? '#888'} 10%, transparent)`
-  prioChip.style.color = priorityConfig?.color ?? 'var(--pm-text-muted)'
-  prioChip.style.border = `1px solid color-mix(in srgb, ${priorityConfig?.color ?? '#888'} 30%, transparent)`
-  prioChip.createSpan({ text: task.priority })
+  const pColor = priorityConfig?.color ?? '#868e96'
+  prioChip.style.background = `color-mix(in srgb, ${pColor} 10%, transparent)`
+  prioChip.style.color = pColor
+  prioChip.style.border = `1px solid color-mix(in srgb, ${pColor} 30%, transparent)`
+  const prioIcon = priorityConfig?.icon && isIconName(priorityConfig.icon)
+    ? priorityConfig.icon
+    : (PRIORITY_CHEVRONS[task.priority] ?? 'equal')
+  const prioIconEl = prioChip.createSpan('pm-priority-icon')
+  setIcon(prioIconEl, prioIcon)
+  prioChip.createSpan({ text: formatBadgeText(priorityConfig?.icon, priorityConfig?.label ?? task.priority) })
   prioChip.addEventListener('click', (e) => {
     e.stopPropagation()
     const menu = new Menu()
@@ -223,7 +243,7 @@ function chip(parent: HTMLElement, label: string, color: string, tooltip: string
   el.style.color = color
   el.style.border = `1px solid color-mix(in srgb, ${color} 30%, transparent)`
   el.setText(label)
-  el.setAttribute('title', tooltip)
+  setTooltip(el, tooltip)
 }
 
 function tagColor(tag: string): string {
