@@ -4,6 +4,7 @@ import { type Project, type ViewMode, type FilterState, type SavedView, makeDefa
 import { truncateTitle, safeAsync } from '../utils'
 import type { SubView } from './SubView'
 import { TableView } from './table/TableView'
+import { VersionsView } from './VersionsView'
 import type { TableViewState } from './table/TableView'
 import { GanttView } from './gantt/GanttView'
 import { KanbanView } from './KanbanView'
@@ -322,7 +323,8 @@ export class ProjectView extends ItemView {
 
     const viewOptions: { id: ViewMode; icon: string; label: string }[] = [
       { id: 'table', icon: 'table', label: 'Table' },
-      { id: 'kanban', icon: 'layout-dashboard', label: 'Board' }
+      { id: 'kanban', icon: 'layout-dashboard', label: 'Board' },
+      { id: 'versions', icon: 'git-branch', label: 'Versions' }
     ]
     if (this.plugin.settings.showGantt) {
       viewOptions.push({ id: 'gantt', icon: 'git-fork', label: 'Gantt' })
@@ -377,27 +379,42 @@ export class ProjectView extends ItemView {
   private renderVersionPanel(container: HTMLElement): void {
     if (!this.project) return
     const versions = this.project.versions
-    if (!versions.length) return
+    const hasActive = !!this.filter.versionId
+    const activeVersion = versions.find((v) => v.id === this.filter.versionId)
 
     const btn = new ExtraButtonComponent(container)
       .setIcon('git-branch')
-      .setTooltip(`Versions (${versions.length})`)
-      .setDisabled(versions.length === 0)
+      .setTooltip(hasActive ? `Version: ${activeVersion?.name ?? ''}` : `Versions (${versions.length})`)
+    if (hasActive) btn.extraSettingsEl.addClass('pm-version-btn--active')
 
     const dropdown = createDiv('pm-version-dropdown pm-dropdown')
     dropdown.style.display = 'none'
 
+    // All tasks option
+    const allRow = dropdown.createDiv('pm-version-row pm-version-row--all')
+    allRow.addClass('clickable-icon')
+    allRow.createSpan({ text: 'All tasks', cls: 'pm-version-name' })
+    allRow.addEventListener('click', () => {
+      this.filter = { ...this.filter, versionId: undefined }
+      void this.persistFilter()
+      this.refreshSubview()
+      dropdown.style.display = 'none'
+    })
+
     for (const v of versions) {
       const taskCount = this.project.tasks.filter((t) => t.versionId === v.id).length
       const row = dropdown.createDiv('pm-version-row')
+      if (v.id === this.filter.versionId) row.addClass('pm-version-row--active')
       row.addClass('clickable-icon')
-      const badge = v.releasedAt ? row.createEl('span', { text: '✓', cls: 'pm-version-badge pm-version-badge--released' }) : row.createEl('span', { text: '○', cls: 'pm-version-badge pm-version-badge--draft' })
+      row.createEl('span', {
+        text: v.releasedAt ? '✓' : '○',
+        cls: v.releasedAt ? 'pm-version-badge pm-version-badge--released' : 'pm-version-badge pm-version-badge--draft'
+      })
       row.createSpan({ text: v.name, cls: 'pm-version-name' })
       row.createSpan({ text: ` (${taskCount})`, cls: 'pm-version-count' })
       row.addEventListener('click', () => {
-        if (!this.project) return
-        this.filter = { ...makeDefaultFilter(), showArchived: this.filter.showArchived }
-        // ponytail: no versionId in FilterState — filter via view refresh
+        this.filter = { ...this.filter, versionId: v.id }
+        void this.persistFilter()
         this.refreshSubview()
         dropdown.style.display = 'none'
       })
@@ -470,6 +487,13 @@ export class ProjectView extends ItemView {
       }
       case 'kanban':
         this.subview = new KanbanView(this.bodyEl, this.project, this.plugin, () => this.refreshProject(), this.filter)
+        break
+      case 'versions':
+        this.subview = new VersionsView(this.bodyEl, {
+          project: this.project,
+          plugin: this.plugin,
+          onRefresh: () => this.refreshProject()
+        })
         break
     }
     this.bodyEl.toggleClass('pm-content--kanban', this.currentView === 'kanban')

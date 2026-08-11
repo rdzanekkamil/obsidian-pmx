@@ -5,7 +5,7 @@ export type TaskStatus = string
 export type TaskPriority = string
 export type GanttGranularity = 'day' | 'week' | 'month' | 'quarter'
 export type GanttWeekLabel = 'weekNumber' | 'dateRange' | 'both'
-export type ViewMode = 'table' | 'gantt' | 'kanban'
+export type ViewMode = 'table' | 'gantt' | 'kanban' | 'versions'
 export type DueDateFilter = 'any' | 'overdue' | 'this-week' | 'this-month' | 'no-date'
 export type TaskType = 'task' | 'milestone' | 'subtask'
 
@@ -111,6 +111,7 @@ export interface FilterState {
   tags: string[]
   dueDateFilter: DueDateFilter
   showArchived: boolean
+  versionId?: string
 }
 
 export interface SavedView {
@@ -299,6 +300,7 @@ export function makeDefaultFilter(): FilterState {
     assignees: [],
     tags: [],
     dueDateFilter: 'any',
-    showArchived: false
+    showArchived: false,
+    versionId: undefined
   }
 }
