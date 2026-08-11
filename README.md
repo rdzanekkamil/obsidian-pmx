@@ -1,220 +1,128 @@
-<div align="center">
-
 # Project ManagerX
-*Full-featured project management, natively in your vault.*
 
-> **This is a community fork of the [Project Manager](https://github.com/StepanKropachev/obsidian-pm) plugin by [Stepan Kropachev](https://github.com/StepanKropachev).** Changes and customizations by [Kamil Rdzanek](https://github.com/rdzanekkamil).
+*A full-featured project management plugin for Obsidian. Tasks, versions, scheduling, time tracking, custom fields — all stored as plain Markdown.*
 
 **[Install via BRAT](#installation)** · **[Changelog](CHANGELOG.md)**
 
-</div>
-
-## What changed in this fork
-
-- Added `tableShowSubtasks` setting — toggle subtask rows in Table view on/off
-- Fork version `0.1.1` (independent versioning from upstream)
-- Authored and maintained by Kamil Rdzanek
-
 ---
 
-Table views, Gantt charts, Kanban boards, custom fields, time tracking, smart scheduling — all stored as plain Markdown with YAML frontmatter. No external services. No sync subscriptions. Your data stays yours.
+## What it does
 
-<img width="1422" height="791" alt="Project Manager dashboard" src="https://github.com/user-attachments/assets/ca6bc67f-e656-45be-b93a-17410555ec1a" />
-
-## What's inside
-
-- **Plain-text data** — Projects and tasks live as `.md` files in your vault. Portable, searchable, version-controllable. No lock-in, ever.
-- **Three powerful views** — Table, Gantt, and Kanban. Switch freely; same data, different lenses.
-- **Real project management** — Not just checkboxes. Dependencies, milestones, subtasks, time tracking, recurring tasks, smart scheduling, bulk actions.
-- **Customizable everything** — Custom fields, statuses, priorities, saved views — adapt the tool to your workflow, not the other way around.
-- **Works offline** — No cloud, no API calls, no accounts. Just Obsidian.
+Manage projects and tasks directly in your vault. Projects are folders; tasks are Markdown files with YAML frontmatter. No database, no cloud, no accounts. Your data lives where your notes live.
 
 ## Views
 
-### Table
+**Table** — Sortable, filterable task grid with inline editing, bulk actions, and saved filter combinations.
 
-Sortable, filterable task grid with inline editing. Save custom filter/sort combinations as named views. Quick-add tasks from the top bar. Select multiple tasks and apply bulk actions — change status, priority, assignee, or delete in one move.
+**Gantt** — Interactive timeline with drag-to-reschedule, resize handles, dependency arrows, milestone diamonds, and a today marker.
 
-### Gantt
+**Kanban** — Drag cards between status columns to update task state instantly.
 
-Interactive timeline with draggable bars, resizable edges, and dependency arrows. Zoom from day to quarter. Drag to reschedule, resize to adjust duration. Milestones render as diamonds. A "today" line keeps you oriented.
-
-### Kanban
-
-Card-based board grouped by status. Drag cards between columns to update status instantly. Cards show priority, assignees, and tags at a glance.
+**Versions** — Track releases and milestones. Assign tasks to a version, set a planned release date, and mark it as released.
 
 ## Features
 
 ### Task management
-- **Subtasks** — Nest tasks to any depth. Collapse/expand hierarchies across all views.
-- **Dependencies** — Link blocking/dependent tasks. Visualized as arrows on the Gantt chart.
-- **Milestones** — Zero-duration tasks for key dates and deliverables.
-- **Archive** — Archive completed tasks without deleting. Toggle visibility at any time.
+- Subtasks nested to any depth
+- Dependencies with blocking/dependent links
+- Milestones (zero-duration markers on the Gantt)
+- Archive completed tasks without deleting them
+- Recurring tasks (daily, weekly, monthly, yearly)
+- Bulk actions: set status, priority, assignee, tag, due date, progress, archive, delete
 
-### Scheduling & time
-- **Drag-and-drop scheduling** — Reschedule tasks by dragging bars on the Gantt chart.
-- **Smart scheduling** — Auto-adjust dependent task dates when a blocker's dates change. Cycle detection prevents circular dependencies. Optionally pull dependents earlier when a blocker is completed ahead of its due date.
-- **Recurring tasks** — Daily, weekly, monthly, or yearly recurrence with configurable end dates.
-- **Time estimates & logging** — Set estimated hours, log actual time with date and notes. Visual progress bar shows logged vs. estimated.
-- **Due date notifications** — Get reminders before tasks are due. Configurable lead time.
+### Scheduling
+- Drag Gantt bars to reschedule
+- Auto-scheduling: when a blocker moves, dependents follow (cycles blocked)
+- Pull-forward on early finish: completing a task ahead of schedule moves its dependents earlier
+- Due date notifications with configurable lead time
+
+### Time tracking
+- Time estimates per task
+- Time logs with date, hours, and notes
+- Visual progress bar (logged vs. estimated)
+
+### Extended task fields
+- **Acceptance criteria** — conditions that mark the task complete
+- **Goal** — the objective
+- **Blocker** — what's blocking progress
+- **Result** — expected outcome
+- **URL** — related link
+- **Version** — which release this task belongs to
 
 ### Customization
-- **Custom fields** — Add per-project fields: text, number, date, select, multi-select, person, checkbox, URL.
-- **Custom statuses & priorities** — Edit labels, colors, and icons for each status and priority level.
-- **Per-project settings** — A project can define its own statuses and priorities and override the default view, auto-scheduling, early-finish pull-forward, and board display options. Project-defined statuses replace the global ones everywhere in that project, from kanban columns to pickers; statuses still in use by tasks always stay visible.
-- **Saved views** — Save filter/sort combinations in Table view and switch between them instantly.
-- **Team roster** — Manage a global team list for assignment across all projects, plus per-project team members.
-
-### Bulk operations
-- Multi-select tasks in Table view for batch actions:
-  - Set status, priority, assignee, tag, or due date
-  - Adjust progress
-  - Archive/unarchive
-  - Set a parent task
-  - Delete
+- Custom fields per project: text, number, date, checkbox, select, multi-select, person, URL
+- Custom statuses: label, color, icon (emoji or Lucide icon from Obsidian's icon set)
+- Custom priorities: label, color, icon
+- Per-project configuration: statuses, priorities, default view, scheduling options, board display
+- Saved views: store filter/sort combinations and switch between them instantly
+- Team roster: global list + per-project members
 
 ### Import
-You can add any existing note from your vault to project as a task. Run **Project Manager: Import notes as tasks** in the Command Palette, pick a project, select files, then choose default status, default priority, and whether to **move** files into the task folder or **copy** them. Already-imported notes are skipped.
+- Convert existing vault notes into tasks: select files, pick defaults, move or copy
+- Integrates with TaskNotes (4.10+): imports dates, dependencies, subtasks, tags, recurrence, archive state; aligns status and priority palettes
 
-https://github.com/user-attachments/assets/64e386c5-09b5-42a6-9599-089cc54c98eb
+### API & MCP
+- REST API server (toggle in settings) for programmatic access
+- MCP server for use with AI tools
 
-- If a project view is open, import auto-targets that project (no picker shown).
-- If no project view is open, a project picker appears first, then the import modal.
-
-You can also create a project from a note. Add `pm-project: true` to any note's frontmatter, then run **Open current file as project**.
-
-
-## Collaboration over the Project
+## Collaboration
 
 The vault is the database. Anything that syncs your vault syncs your projects.
 
-**Git** works well. Commit your projects folder, push, pull. Sync conflicts show up as regular Markdown conflicts. Resolve them like any other file.
-**Obsidian Sync, iCloud, Dropbox, Syncthing** all work without extra setup.
+- **Git** — commit, push, pull. Conflicts are regular Markdown conflicts, resolved the same way.
+- **Obsidian Sync, iCloud, Dropbox, Syncthing** — work without extra setup.
 
-For teams:
-
-- Add people in **Settings > Team members**, or to a project's own member list from the project modal.
-- Assign tasks via the Assignees field. Filter by assignee in the Table view.
-- Notifications are local. Each person sees their own due date reminders.
-
-There is no real-time multi-user editing. Two people editing the same task at once produces a sync conflict, same as any Markdown note.
-
-## Using with TaskNotes
-
-Project Manager works alongside the [TaskNotes](https://github.com/callumalpass/tasknotes) plugin (4.10 or newer).
-
-### Import TaskNotes tasks
-
-The regular **Import notes as tasks** command recognizes TaskNotes tasks and converts them with their fields intact:
-
-- scheduled and due dates map to start and due
-- `blockedBy` dependencies between imported notes become task dependencies
-- project links between imported notes become parent/subtask relationships
-- tags, time estimates, completion dates, simple recurrence, and archive state carry over
-- statuses and priorities the imported tasks use are added to your palettes automatically
-
-Choose **move** to turn the TaskNotes notes into task files inside the project's task folder, or **copy** to keep the originals untouched.
-
-### Align statuses and priorities
-
-**Settings > Import from TaskNotes** copies TaskNotes' status and priority palettes into Project Manager, so both plugins use the same values, names, and colors. Entries TaskNotes doesn't know are kept.
-
-### Let TaskNotes see Project Manager tasks
-
-TaskNotes can be configured to list and edit Project Manager tasks in place, without conversion:
-
-1. In TaskNotes settings, set task identification to **property** with name `pm-task` and value `true`.
-2. In its field mapping, map **scheduled** to `start`.
-3. Add your Project Manager status and priority values to TaskNotes' palettes.
-
-Task hierarchy and dependencies don't resolve on the TaskNotes side (it uses project links and `blockedBy`, Project Manager uses id references), but both plugins edit frontmatter non-destructively, so each one's extra fields survive the other's writes.
+Each team member sees their own due date reminders locally. There is no real-time multi-user editing — simultaneous edits produce a sync conflict, same as any shared note.
 
 ## Settings
 
 | Setting | Description |
 |---|---|
-| Projects folder | Vault folder where project and task files are stored |
+| Projects folder | Vault folder for projects and tasks (default: `Projects/`) |
 | Default view | Table, Gantt, or Kanban |
-| Gantt granularity | Default timeline scale (day / week / month / quarter) |
+| Gantt granularity | Default timeline scale |
 | Gantt week labels | Week number, date range, or both |
-| Show subtasks in Table | Display subtask rows in Table view |
-| Show subtasks in Kanban | Display subtasks as individual cards |
-| Show description preview | Display first few lines of each task description in Kanban |
-| Due date notifications | Reminders N days before due dates |
-| Notifications on/off | Master switch for due date reminders, separate from lead time |
-| Auto-schedule | When a blocking task moves, its dependents shift to match. Cycles are refused. |
-| Pull dependents forward on early finish | Off by default. When a task is completed before its due date, its dependents move earlier by the days it saved, keeping any slack they already had. |
-| Hide done in Gantt | Skip completed and cancelled tasks on the timeline |
-| Show tag colors | Give each tag a colored dot derived from its name |
-| Custom statuses | Edit labels, colors, and icons for each status |
-| Custom priorities | Edit labels, colors, and icons for each priority |
+| Show subtasks in Table | Toggle subtask rows in Table view |
+| Show subtasks in Kanban | Show subtasks as individual cards |
+| Show description preview | Show first lines of each task in Kanban |
+| Due date notifications | Remind N days before due dates |
+| Auto-schedule | Move dependents when a blocker moves |
+| Pull forward on early finish | Move dependents earlier when a blocker completes ahead |
+| Hide done in Gantt | Skip completed/cancelled tasks on the timeline |
+| Show tag colors | Colored dot per tag |
+| Custom statuses | Edit labels, colors, icons |
+| Custom priorities | Edit labels, colors, icons |
 | Team members | Global roster for task assignment |
+| Save tasks on close | Off = discard edits on close |
+| REST API / MCP | Toggle built-in API servers |
 
 ## Task properties
-
-Each task is a `.md` file in your vault supporting:
 
 | Property | Description |
 |---|---|
 | Title | Task name |
-| Description | Rich text body (Markdown) |
+| Description | Rich Markdown body |
 | Type | Task, Subtask, or Milestone |
-| Status | To do, In progress, Blocked, In review, Done, Cancelled |
-| Priority | Critical, High, Medium, Low |
-| Start / Due date | Schedule boundaries |
+| Status | Configurable (default: To Do, In Progress, Blocked, In Review, Done, Cancelled) |
+| Priority | Configurable (default: Critical, High, Medium, Low) |
+| Start / Due | Date boundaries |
 | Progress | 0–100% completion |
 | Time estimate | Estimated hours |
-| Time logs | Logged hours with date and notes |
-| Assignees | One or more team members |
+| Time logs | Hours logged with date and notes |
+| Assignees | Team members |
 | Tags | Freeform labels |
 | Subtasks | Nested child tasks |
-| Dependencies | Blocking/dependent task links |
-| Recurrence | Repeat interval and end date |
-| Custom fields | Any per-project fields you define |
-
-## Installation
-
-### Via BRAT (recommended for this fork)
-
-1. Install the [BRAT plugin](https://github.com/TfTHacker/obsidian42-brat) from the community store.
-2. Open BRAT settings > **Add Beta Plugin**.
-3. Enter: `https://github.com/rdzanekkamil/obsidian-pmx`
-4. Enable the plugin in **Settings > Community plugins**.
-
-### From Obsidian community store (upstream)
-
-The original plugin by Stepan Kropachev is available at [community.obsidian.md/plugins/project-manager](https://community.obsidian.md/plugins/project-manager).
-
-### Manual
-
-1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](../../releases/latest).
-2. Create a folder: `<vault>/.obsidian/plugins/project-manager/`
-3. Copy the three files into that folder.
-4. Reload Obsidian and enable the plugin under **Settings > Community plugins**.
-
-## Quick start
-
-1. Click the dashboard icon in the ribbon (or run **Open projects pane** from the command palette).
-2. Click **New project** to create your first project. Give it a name, color, and icon.
-3. Open the project — it opens in Table view by default.
-4. Press **+ Add task** to create your first task.
-5. Switch views using the Table / Gantt / Kanban tabs at the top.
-
-**Commands:**
-| Command | What it does |
-|---|---|
-| Open projects pane | Open the project list |
-| Create new project | Open the new project modal |
-| Create new task | Pick a project, then create a task |
-| Create new subtask | Pick a project and a parent task |
-| Import notes as tasks | Convert Markdown notes into tasks |
-| Open current file as project | Open the active note as a project (needs `pm-project: true`) |
-| Undo last action | Revert the last change |
-| Redo last action | Reapply an undone change |
+| Dependencies | Blocking/dependent task IDs |
+| Recurrence | Daily, weekly, monthly, yearly with end date |
+| Acceptance criteria | Completion conditions |
+| Goal / Blocker / Result | Context fields |
+| URL | Related link |
+| Version | Release this task belongs to |
+| Custom fields | Per-project defined fields |
 
 ## Data format
 
-Everything is stored as Markdown files with YAML frontmatter in a configurable vault folder (default: `Projects/`). Plain text — readable, portable, and version-controllable.
+Tasks are `.md` files in your vault. Plain text — readable, portable, version-controllable.
 
 ```yaml
 ---
@@ -222,14 +130,15 @@ pm-task: true
 title: "Ship v1.0"
 status: in-progress
 priority: high
+start: "2026-03-01"
 due: "2026-04-01"
 progress: 60
 assignees: ["alice", "bob"]
-tags: ["launch"]
+tags: ["launch", "frontend"]
 dependencies: ["task-abc123"]
+versionId: "v-xyz"
 ---
-
-Task description in Markdown goes here.
+Task description in Markdown.
 ```
 
 ## Requirements
@@ -237,9 +146,45 @@ Task description in Markdown goes here.
 - Obsidian **1.13.0** or later
 - Desktop and mobile supported
 
-## Contributing
+## Installation
 
-See the upstream [Project Manager](https://github.com/StepanKropachev/obsidian-pm) repository for contribution guidelines. For changes specific to this fork, open an issue or PR at [github.com/rdzanekkamil/obsidian-pmx](https://github.com/rdzanekkamil/obsidian-pmx).
+### Via BRAT (recommended)
+
+1. Install [BRAT](https://github.com/TfTHacker/obsidian42-brat) from the community store.
+2. Open BRAT settings → **Add Beta Plugin**.
+3. Enter: `https://github.com/rdzanekkamil/obsidian-pmx`
+4. Enable the plugin under **Settings → Community plugins**.
+
+### Manual
+
+1. Download `main.js`, `manifest.json`, and `styles.css` from the [latest release](../../releases/latest).
+2. Create a folder: `<vault>/.obsidian/plugins/project-manager/`
+3. Copy the three files into that folder.
+4. Reload Obsidian and enable the plugin under **Settings → Community plugins**.
+
+## Quick start
+
+1. Click the ribbon icon (or run **Open projects pane** from the command palette).
+2. Click **New project** — give it a name, color, and icon.
+3. Open the project — Table view by default.
+4. Press **+ Add task** to create tasks.
+5. Switch between Table, Gantt, Kanban, and Versions using the tabs.
+
+## Commands
+
+| Command | Description |
+|---|---|
+| Open projects pane | Open the project list |
+| Create new project | Open the new project modal |
+| Create new task | Pick a project, then create a task |
+| Create new subtask | Pick a project and a parent task |
+| Import notes as tasks | Convert Markdown notes into tasks |
+| Open current file as project | Open the active note as a project (`pm-project: true` in frontmatter) |
+| Undo / Redo | Revert or reapply the last change |
+
+## Fork notes
+
+This is a community fork of the [Project Manager](https://github.com/StepanKropachev/obsidian-pm) plugin by [Stepan Kropachev](https://github.com/StepanKropachev). Changes and customizations by [Kamil Rdzanek](https://github.com/rdzanekkamil).
 
 ## License
 
