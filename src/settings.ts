@@ -207,6 +207,45 @@ export class PMSettingTab extends PluginSettingTab {
       },
       {
         type: 'group',
+        heading: 'MCP',
+        items: [
+          {
+            name: 'Enable MCP Server',
+            desc: 'Start MCP server for AI tool access via HTTP. Requires restart.',
+            control: { type: 'toggle', key: 'showMcp' }
+          },
+          {
+            name: 'Port',
+            desc: 'TCP port. Default: 17172.',
+            control: {
+              type: 'text',
+              key: 'mcpPort',
+              defaultValue: '17172',
+              placeholder: '17172'
+            }
+          },
+          {
+            type: 'render' as never,
+            name: 'MCP Endpoint',
+            desc: 'Use this URL in your AI harness.',
+            render: (setting: Setting) => {
+              const url = `http://localhost:${this.plugin.settings.mcpPort}/mcp`
+              setting.settingEl.addClass('pm-mcp-endpoint')
+              setting.descEl.setText(' ')
+              const codeEl = setting.descEl.createEl('code', { text: url })
+              const btn = new Setting(setting.settingEl).addButton((btn) => {
+                btn.setIcon('copy').setTooltip('Copy URL').onClick(async () => {
+                  await navigator.clipboard.writeText(url)
+                  new Notice('MCP URL copied!')
+                })
+              })
+              btn.settingEl.style.marginLeft = '8px'
+            }
+          }
+        ]
+      },
+      {
+        type: 'group',
         heading: 'Task fields',
         items: [this.statusesPage(), this.prioritiesPage(), this.teamMembersPage()]
       },
@@ -217,6 +256,12 @@ export class PMSettingTab extends PluginSettingTab {
         items: [this.taskNotesPage()]
       }
     ]
+  }
+
+  async setControlValue(key: string, value: unknown): Promise<void> {
+    await super.setControlValue(key, value)
+    if (key === 'kanbanShowDescriptionPreview') this.plugin.refreshProjectViews()
+    this.refreshDomState()
   }
 
   private statusesPage(): SettingDefinitionPage {
