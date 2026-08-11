@@ -41,7 +41,8 @@ export function serializeProject(project: Project, statuses: StatusConfig[] = []
     savedViews: project.savedViews.length ? project.savedViews : [],
     versions: project.versions.length ? project.versions : [],
     createdAt: project.createdAt,
-    updatedAt: project.updatedAt
+    updatedAt: project.updatedAt,
+    ...(project.detailsFile ? { detailsFile: project.detailsFile } : {}),
   }
   const config = serializeProjectConfig(project.config)
   if (config) fm.config = config

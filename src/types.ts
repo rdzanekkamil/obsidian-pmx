@@ -92,6 +92,8 @@ export interface Project {
   updatedAt: string
   filePath: string // resolved vault path
   savedViews: SavedView[]
+  /** Vault path to a markdown file with extended project notes / description. */
+  detailsFile?: string
   /** Per-project overrides for the global settings. Absent fields inherit. */
   config?: ProjectConfig
   /** Not serialized. Rebuilt on load, maintained by the store's mutators. */
@@ -100,7 +102,7 @@ export interface Project {
 
 /** Tasks are excluded: they change through the task mutators, never a whole-project write. */
 export type ProjectPatch = Partial<
-  Pick<Project, 'title' | 'description' | 'color' | 'icon' | 'customFields' | 'teamMembers' | 'savedViews' | 'config'>
+  Pick<Project, 'title' | 'description' | 'color' | 'icon' | 'customFields' | 'teamMembers' | 'savedViews' | 'config' | 'detailsFile'>
 >
 
 export interface FilterState {
