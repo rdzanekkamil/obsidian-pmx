@@ -182,9 +182,9 @@ Task description in Markdown.
 | Open current file as project | Open the active note as a project (`pm-project: true` in frontmatter) |
 | Undo / Redo | Revert or reapply the last change |
 
-## Fork notes
+## Credits
 
-This is a community fork of the [Project Manager](https://github.com/StepanKropachev/obsidian-pm) plugin by [Stepan Kropachev](https://github.com/StepanKropachev). Changes and customizations by [Kamil Rdzanek](https://github.com/rdzanekkamil).
+Forked from [Project Manager](https://github.com/StepanKropachev/obsidian-pm) by [Stepan Kropachev](https://github.com/StepanKropachev).
 
 ## License
 
