@@ -52,9 +52,13 @@ export function renderTable(ctx: TableContext): void {
     })
   })
 
-  // Header row
+  // Header row — inside wrapper for sticky to work
   const header = wrapper.createDiv('pm-table-header')
   ctx.state.headerEl = header
+
+  // Scrollable list
+  const list = wrapper.createDiv()
+  ctx.state.listEl = list
 
   const cols: { key: SortKey; label: string; cls: string }[] = [
     { key: 'title',     label: 'Task',      cls: 'pm-th--title' },
@@ -95,10 +99,6 @@ export function renderTable(ctx: TableContext): void {
   }
   header.createDiv('pm-th pm-th--actions')
   paintSortIndicators()
-
-  // Scrollable list
-  const list = wrapper.createDiv()
-  ctx.state.listEl = list
   fillTableBody(ctx)
 }
 
