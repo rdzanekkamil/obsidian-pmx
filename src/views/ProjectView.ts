@@ -373,6 +373,28 @@ export class ProjectView extends ItemView {
         openProjectModal(this.plugin, { project: this.project })
       })
 
+    new ExtraButtonComponent(right)
+      .setIcon('file-text')
+      .setTooltip('Project details')
+      .onClick(() => {
+        if (!this.project) return
+        if (this.project.detailsFile) {
+          const file = this.app.vault.getAbstractFileByPath(this.project.detailsFile)
+          if (file instanceof TFile) {
+            this.app.workspace.getLeaf(true).openFile(file)
+            return
+          }
+        }
+        // create new details file
+        const folder = this.project.filePath.replace(/[^/]+\.md$/, '')
+        const slug = this.project.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+        const detailsPath = `${folder}${slug}-details.md`
+        this.app.vault.create(detailsPath, `# ${this.project.icon} ${this.project.title}\n\n`).then((file) => {
+          this.app.workspace.getLeaf(true).openFile(file)
+          void this.plugin.store.updateProject(this.project!, { detailsFile: detailsPath })
+        })
+      })
+
     this.renderVersionPanel(right)
   }
 

@@ -143,6 +143,7 @@ export function hydrateProjectFromFrontmatter(
     customFields: Array.isArray(frontmatter.customFields) ? [...(frontmatter.customFields as CustomFieldDef[])] : [],
     teamMembers: Array.isArray(frontmatter.teamMembers) ? [...(frontmatter.teamMembers as string[])] : [],
     versions: hydrateVersions((frontmatter.versions as unknown[]) ?? []),
+    detailsFile: typeof frontmatter.detailsFile === 'string' ? frontmatter.detailsFile : undefined,
     createdAt: (frontmatter.createdAt as string) ?? new Date().toISOString(),
     updatedAt: (frontmatter.updatedAt as string) ?? new Date().toISOString(),
     filePath,
