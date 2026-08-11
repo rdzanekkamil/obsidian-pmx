@@ -156,14 +156,7 @@
   pointer-events: none;
 }
 
-.theme-dark .pm-root {
-  --pm-ghost-border: rgba(255, 255, 255, 0.06);
-  --pm-shadow-ambient: rgba(0, 0, 0, 0.15);
-}
-.theme-dark .pm-modal {
-  --pm-ghost-border: rgba(255, 255, 255, 0.06);
-  --pm-shadow-ambient: rgba(0, 0, 0, 0.15);
-}
+/* Dark overrides for --pm-ghost-border / --pm-shadow-ambient are now in variables.css */
 
 .pm-modal-desc-section {
   border-top: none;
