@@ -39,6 +39,7 @@ export function serializeProject(project: Project, statuses: StatusConfig[] = []
     customFields: project.customFields,
     teamMembers: project.teamMembers,
     savedViews: project.savedViews.length ? project.savedViews : [],
+    versions: project.versions.length ? project.versions : [],
     createdAt: project.createdAt,
     updatedAt: project.updatedAt
   }
@@ -95,6 +96,12 @@ export function buildTaskFrontmatter(task: Task, project: Project, parentTask: T
   if (task.timeEstimate !== undefined) fm.timeEstimate = task.timeEstimate
   if (task.timeLogs?.length) fm.timeLogs = task.timeLogs
   if (Object.keys(task.customFields).length) fm.customFields = task.customFields
+  if (task.acceptanceCriteria) fm.acceptanceCriteria = task.acceptanceCriteria
+  if (task.url) fm.url = task.url
+  if (task.goal) fm.goal = task.goal
+  if (task.blocker) fm.blocker = task.blocker
+  if (task.result) fm.result = task.result
+  if (task.versionId) fm.versionId = task.versionId
   return fm
 }
 

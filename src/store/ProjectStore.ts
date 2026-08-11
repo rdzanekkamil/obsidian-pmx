@@ -1,6 +1,6 @@
 import type { Plugin, TAbstractFile } from 'obsidian'
 import { App, Notice, TFile, TFolder, normalizePath } from 'obsidian'
-import type { PMSettings, Project, ProjectPatch, ResolvedProjectConfig, StatusConfig, Task } from '../types'
+import type { PMSettings, Project, ProjectPatch, ResolvedProjectConfig, StatusConfig, Task, Version } from '../types'
 import { DEFAULT_SETTINGS, makeProject, makeTask } from '../types'
 import { today } from '../dates'
 import { isTerminalStatus } from '../utils'
@@ -495,6 +495,49 @@ export class ProjectStore implements TaskSource {
   async updateProject(project: Project, patch: ProjectPatch): Promise<void> {
     Object.assign(project, patch)
     if (patch.description !== undefined) this.hydratedBodies.add(project)
+    await this.saveProject(project)
+  }
+
+  async createVersion(project: Project, version: Version): Promise<void> {
+    project.versions.push(version)
+    await this.saveProject(project)
+  }
+
+  async updateVersion(project: Project, versionId: string, patch: Partial<Version>): Promise<void> {
+    const v = project.versions.find((v) => v.id === versionId)
+    if (!v) return
+    Object.assign(v, patch)
+    await this.saveProject(project)
+  }
+
+  async deleteVersion(project: Project, versionId: string): Promise<void> {
+    const idx = project.versions.findIndex((v) => v.id === versionId)
+    if (idx < 0) return
+    project.versions.splice(idx, 1)
+    // clear versionId from tasks assigned to this version
+    for (const task of project.tasks) {
+      if (task.versionId === versionId) task.versionId = ''
+    }
+    await this.saveProject(project)
+  }
+
+  async releaseVersion(project: Project, versionId: string): Promise<void> {
+    const v = project.versions.find((v) => v.id === versionId)
+    if (!v) return
+    v.releasedAt = new Date().toISOString()
+    await this.saveProject(project)
+  }
+
+  async assignTasksToVersion(project: Project, versionId: string, taskIds: string[]): Promise<void> {
+    // unassign from current version first
+    for (const task of project.tasks) {
+      if (taskIds.includes(task.id)) {
+        task.versionId = versionId
+      }
+    }
+    // sync version.taskIds
+    const v = project.versions.find((v) => v.id === versionId)
+    if (v) v.taskIds = [...new Set([...v.taskIds, ...taskIds])]
     await this.saveProject(project)
   }
 

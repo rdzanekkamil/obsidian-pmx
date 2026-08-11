@@ -29,6 +29,16 @@ export interface CustomFieldDef {
   icon?: string // emoji or lucide icon name
 }
 
+export interface Version {
+  id: string
+  name: string
+  description: string
+  plannedReleaseDate: string // YYYY-MM-DD, optional
+  releasedAt: string        // ISO date, "" = unreleased
+  taskIds: string[]         // task IDs in this version
+  createdAt: string
+}
+
 export interface Task {
   id: string
   title: string
@@ -43,7 +53,7 @@ export interface Task {
   assignees: string[]
   tags: string[]
   subtasks: Task[]
-  dependencies: string[] // task IDs
+  dependencies: string[] // task IDs this task depends on
   recurrence?: Recurrence
   timeEstimate?: number // hours
   timeLogs?: TimeLog[]
@@ -54,6 +64,18 @@ export interface Task {
   updatedAt: string
   filePath?: string // vault path to this task's .md file
   archived?: boolean // runtime only — derived from file location in Archive/ subfolder
+  /** Criteria that must be met for the task to be considered complete. */
+  acceptanceCriteria?: string
+  /** URL related to this task. */
+  url?: string
+  /** Goal of this task. */
+  goal?: string
+  /** What's blocking this task. */
+  blocker?: string
+  /** Expected result of this task. */
+  result?: string
+  /** Which version this task belongs to. */
+  versionId?: string
 }
 
 export interface Project {
@@ -63,6 +85,7 @@ export interface Project {
   color: string // hex
   icon: string // emoji
   tasks: Task[]
+  versions: Version[]
   customFields: CustomFieldDef[]
   teamMembers: string[]
   createdAt: string
@@ -238,6 +261,12 @@ export function makeTask(overrides: Partial<Task> = {}): Task {
     collapsed: false,
     createdAt: now,
     updatedAt: now,
+    acceptanceCriteria: '',
+    url: '',
+    goal: '',
+    blocker: '',
+    result: '',
+    versionId: '',
     ...overrides
   }
 }
@@ -251,6 +280,7 @@ export function makeProject(title: string, filePath: string): Project {
     color: '#8b72be',
     icon: '📋',
     tasks: [],
+    versions: [],
     customFields: [],
     teamMembers: [],
     createdAt: now,

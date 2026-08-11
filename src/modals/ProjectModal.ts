@@ -1,6 +1,6 @@
 import { App, ButtonComponent, Modal } from 'obsidian'
 import type PMPlugin from '../main'
-import { type Project, type ProjectConfig, type ProjectPatch, type CustomFieldDef, makeId, makeProject } from '../types'
+import { type Project, type ProjectConfig, type ProjectPatch, type CustomFieldDef, type Version, makeId, makeProject } from '../types'
 import { safeAsync } from '../utils'
 import { renderAddButton } from '../ui/composites/addButton'
 import { Avatar } from '../ui/primitives/Avatar'
@@ -28,14 +28,15 @@ interface ProjectDraft {
   description: string
   color: string
   icon: string
+  versions: Version[]
   customFields: CustomFieldDef[]
   teamMembers: string[]
   config: ProjectConfig | undefined
 }
 
 function draftOf(project: Project): ProjectDraft {
-  const { title, description, color, icon, customFields, teamMembers, config } = project
-  const draft = { title, description, color, icon, customFields, teamMembers, config }
+  const { title, description, color, icon, versions, customFields, teamMembers, config } = project
+  const draft = { title, description, color, icon, versions, customFields, teamMembers, config }
   return JSON.parse(JSON.stringify(draft)) as ProjectDraft
 }
 
@@ -191,6 +192,32 @@ export class ProjectModal extends Modal {
       })
     }
     renderMembers()
+
+    const versionSection = el.createDiv('pm-modal-section')
+    const versionHeader = versionSection.createDiv('pm-modal-section-header')
+    versionHeader.createSpan({ text: 'Versions', cls: 'pm-modal-subheading' })
+    versionHeader.createSpan({ text: 'Release milestones for tasks', cls: 'pm-modal-hint' })
+
+    const versionList = versionSection.createDiv('pm-version-list')
+    const renderVersions = () => {
+      versionList.empty()
+      for (const v of this.draft.versions) {
+        this.renderVersionEditor(versionList, v, renderVersions)
+      }
+      renderAddButton(versionList, 'Add version', () => {
+        this.draft.versions.push({
+          id: makeId(),
+          name: '',
+          description: '',
+          plannedReleaseDate: '',
+          releasedAt: '',
+          taskIds: [],
+          createdAt: new Date().toISOString()
+        })
+        renderVersions()
+      })
+    }
+    renderVersions()
 
     const cfSection = el.createDiv('pm-modal-section')
     const cfHeader = cfSection.createDiv('pm-modal-section-header')
@@ -400,6 +427,38 @@ export class ProjectModal extends Modal {
     select.addEventListener('change', () => {
       this.patchConfig(key, select.value === '' ? undefined : options[Number(select.value)].value)
     })
+  }
+
+  private renderVersionEditor(container: HTMLElement, version: Version, rerender: () => void): void {
+    const idx = this.draft.versions.findIndex((v) => v.id === version.id)
+    const row = container.createDiv('pm-version-row')
+
+    const nameInput = row.createEl('input', { type: 'text', value: version.name, cls: 'pm-input pm-version-name' })
+    nameInput.placeholder = 'e.g. v1.0, sprint-5, winter-2026'
+    nameInput.addEventListener('change', () => {
+      this.draft.versions[idx].name = nameInput.value
+    })
+
+    const descInput = row.createEl('input', { type: 'text', value: version.description, cls: 'pm-input pm-version-desc' })
+    descInput.placeholder = 'Description'
+    descInput.addEventListener('change', () => {
+      this.draft.versions[idx].description = descInput.value
+    })
+
+    const dateInput = row.createEl('input', { type: 'date', value: version.plannedReleaseDate, cls: 'pm-input' })
+    dateInput.addEventListener('change', () => {
+      this.draft.versions[idx].plannedReleaseDate = dateInput.value
+    })
+
+    if (version.releasedAt) {
+      row.createSpan({ text: `Released ${version.releasedAt.slice(0, 10)}`, cls: 'pm-version-released' })
+    }
+
+    new IconButton(row, 'trash')
+      .onClick(() => {
+        this.draft.versions.splice(idx, 1)
+        rerender()
+      })
   }
 
   private renderCustomFieldEditor(
