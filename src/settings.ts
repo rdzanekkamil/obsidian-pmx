@@ -186,6 +186,27 @@ export class PMSettingTab extends PluginSettingTab {
       },
       {
         type: 'group',
+        heading: 'API',
+        items: [
+          {
+            name: 'Enable REST API',
+            desc: 'Start HTTP server on localhost for CRUD operations. Requires restart.',
+            control: { type: 'toggle', key: 'showApi' }
+          },
+          {
+            name: 'Port',
+            desc: 'TCP port. Default: 17171.',
+            control: {
+              type: 'text',
+              key: 'apiPort',
+              defaultValue: '17171',
+              placeholder: '17171'
+            }
+          }
+        ]
+      },
+      {
+        type: 'group',
         heading: 'Task fields',
         items: [this.statusesPage(), this.prioritiesPage(), this.teamMembersPage()]
       },
@@ -196,12 +217,6 @@ export class PMSettingTab extends PluginSettingTab {
         items: [this.taskNotesPage()]
       }
     ]
-  }
-
-  async setControlValue(key: string, value: unknown): Promise<void> {
-    await super.setControlValue(key, value)
-    if (key === 'kanbanShowDescriptionPreview') this.plugin.refreshProjectViews()
-    this.refreshDomState()
   }
 
   private statusesPage(): SettingDefinitionPage {

@@ -37,5 +37,7 @@ export default defineConfig({
       '@lezer/lr',
       ...builtinModules
     ]
-  }
+  },
+  splitting: false,
+  inlineDynamicImports: true
 })
