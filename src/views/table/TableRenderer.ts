@@ -16,14 +16,12 @@ export interface TableState {
   sortKey: SortKey
   sortDir: SortDir
   filter: FilterState
-  tableBody: HTMLElement | null
+  listEl: HTMLElement | null
   wrapper: HTMLElement | null
-  /** Display list after filter/sort/collapse. Drives the virtual window and selection. */
+  headerEl: HTMLElement | null
   visibleRows: FlatTask[]
-  /** An estimate until calibrated against the first painted row. */
   rowHeight: number
   heightCalibrated: boolean
-  /** Bounds of the rendered window into visibleRows. -1 forces a repaint. */
   windowStart: number
   windowEnd: number
   renderWindow: (() => void) | null
@@ -33,7 +31,6 @@ export interface TableContext {
   container: HTMLElement
   project: Project
   plugin: PMPlugin
-  /** Resolved once per render pass. */
   statuses: StatusConfig[]
   priorities: PriorityConfig[]
   state: TableState
@@ -54,40 +51,37 @@ export function renderTable(ctx: TableContext): void {
       ctx.state.renderWindow?.()
     })
   })
-  const table = wrapper.createEl('table', { cls: 'pm-table' })
 
-  const thead = table.createEl('thead')
-  const hrow = thead.createEl('tr')
+  // Header row
+  const header = wrapper.createDiv('pm-table-header')
+  ctx.state.headerEl = header
 
-  const cols: { key: SortKey; label: string; width?: string }[] = [
-    { key: 'title', label: 'Task', width: 'auto' },
-    { key: 'status', label: 'Status', width: '130px' },
-    { key: 'priority', label: 'Priority', width: '110px' },
-    { key: 'assignees', label: 'Assignees', width: '140px' },
-    { key: 'due', label: 'Due', width: '110px' },
-    { key: 'progress', label: 'Progress', width: '120px' }
+  const cols: { key: SortKey; label: string; cls: string }[] = [
+    { key: 'title',     label: 'Task',      cls: 'pm-th--title' },
+    { key: 'status',    label: 'Status',    cls: 'pm-th--status' },
+    { key: 'priority',  label: 'Priority',  cls: 'pm-th--priority' },
+    { key: 'assignees', label: 'Assignees', cls: 'pm-th--assignees' },
+    { key: 'due',       label: 'Due',       cls: 'pm-th--due' },
+    { key: 'progress',  label: 'Progress',  cls: 'pm-th--progress' },
   ]
-  const sortableHeaders: { key: SortKey; th: HTMLElement }[] = []
+
+  const sortEls: { key: SortKey; el: HTMLElement }[] = []
   const paintSortIndicators = () => {
-    for (const { key, th } of sortableHeaders) {
-      th.querySelector('.pm-sort-indicator')?.remove()
+    for (const { key, el } of sortEls) {
+      const existing = el.querySelector('.pm-sort-indicator')
+      existing?.remove()
       if (ctx.state.sortKey === key) {
-        th.createSpan({
-          text: ctx.state.sortDir === 'asc' ? ' ↑' : ' ↓',
-          cls: 'pm-sort-indicator'
-        })
+        el.createSpan({ text: ctx.state.sortDir === 'asc' ? ' ↑' : ' ↓', cls: 'pm-sort-indicator' })
       }
     }
   }
 
   for (const col of cols) {
-    const th = hrow.createEl('th')
-    if (col.width) th.setCssStyles({ width: col.width })
-    th.addClass('pm-table-th-sortable')
+    const th = header.createDiv('pm-th pm-th--sortable ' + col.cls)
     th.setAttribute('role', 'button')
     th.setAttribute('aria-label', `Sort by ${col.label}`)
     th.createSpan({ text: col.label })
-    sortableHeaders.push({ key: col.key, th })
+    sortEls.push({ key: col.key, el: th })
     th.addEventListener('click', () => {
       if (ctx.state.sortKey === col.key) {
         ctx.state.sortDir = ctx.state.sortDir === 'asc' ? 'desc' : 'asc'
@@ -99,25 +93,22 @@ export function renderTable(ctx: TableContext): void {
       refreshTableBody(ctx)
     })
   }
+  header.createDiv('pm-th pm-th--actions')
   paintSortIndicators()
 
-  // Actions column, must stay last.
-  const actionsTh = hrow.createEl('th')
-  actionsTh.setCssStyles({ width: '40px' })
-
-  ctx.state.tableBody = table.createEl('tbody')
+  // Scrollable list
+  const list = wrapper.createDiv()
+  ctx.state.listEl = list
   fillTableBody(ctx)
 }
 
 export function refreshTableBody(ctx: TableContext): void {
-  if (ctx.state.tableBody) {
-    fillTableBody(ctx)
-  }
+  if (ctx.state.listEl) fillTableBody(ctx)
 }
 
 function fillTableBody(ctx: TableContext): void {
-  const tbody = ctx.state.tableBody
-  if (!tbody) return
+  const list = ctx.state.listEl
+  if (!list) return
 
   let flat = flattenTasks(ctx.project.tasks)
   const hasActiveFilter = isFilterActive(ctx.state.filter)
@@ -125,7 +116,6 @@ function fillTableBody(ctx: TableContext): void {
 
   const filteredIds = new Set(flat.map((f) => f.task.id))
 
-  // Group by parentId once, O(N), promoting orphans whose parent was filtered out.
   const childrenByParent = new Map<string | null, FlatTask[]>()
   for (const f of flat) {
     let bucket: string | null
@@ -136,29 +126,25 @@ function fillTableBody(ctx: TableContext): void {
     } else {
       bucket = f.parentId
     }
-    let list = childrenByParent.get(bucket)
-    if (!list) {
-      list = []
-      childrenByParent.set(bucket, list)
-    }
-    list.push(f)
+    let arr = childrenByParent.get(bucket)
+    if (!arr) { arr = []; childrenByParent.set(bucket, arr) }
+    arr.push(f)
   }
-  for (const list of childrenByParent.values()) {
-    list.sort((a, b) => compareTask(a.task, b.task, ctx.state, ctx.statuses, ctx.priorities))
+  for (const arr of childrenByParent.values()) {
+    arr.sort((a, b) => compareTask(a.task, b.task, ctx.state, ctx.statuses, ctx.priorities))
   }
 
   const sorted: FlatTask[] = []
   const addWithChildren = (parentId: string | null) => {
-    const items = childrenByParent.get(parentId)
-    if (!items) return
-    for (const item of items) {
+    const arr = childrenByParent.get(parentId)
+    if (!arr) return
+    for (const item of arr) {
       sorted.push(item)
       addWithChildren(item.task.id)
     }
   }
   addWithChildren(null)
 
-  // Show only root tasks (depth 0).
   ctx.state.visibleRows = sorted.filter((f) => f.visible && f.depth === 0)
   ctx.state.renderWindow = () => renderWindowRows(ctx)
   ctx.state.windowStart = -1
@@ -167,14 +153,13 @@ function fillTableBody(ctx: TableContext): void {
 }
 
 const ROW_OVERSCAN = 8
-export const ROW_HEIGHT_ESTIMATE = 36
+export const ROW_HEIGHT_ESTIMATE = 48
 
-/** The [start, end) slice of visibleRows to render at the current scroll position. */
 function computeWindow(state: TableState): { start: number; end: number } {
   const wrapper = state.wrapper
   if (!wrapper) return { start: 0, end: state.visibleRows.length }
-  const thead = wrapper.querySelector('thead')
-  const headerHeight = thead instanceof HTMLElement ? thead.offsetHeight : 0
+  const header = state.headerEl
+  const headerHeight = header instanceof HTMLElement ? header.offsetHeight : 0
   const scrollTop = Math.max(0, wrapper.scrollTop - headerHeight)
   const viewHeight = wrapper.clientHeight || 600
 
@@ -185,47 +170,42 @@ function computeWindow(state: TableState): { start: number; end: number } {
   return { start, end }
 }
 
-/** Renders the viewport rows only, bracketed by spacers that keep the scrollbar honest. */
 function renderWindowRows(ctx: TableContext): void {
   const { state } = ctx
-  const tbody = state.tableBody
-  if (!tbody) return
+  const list = state.listEl
+  if (!list) return
 
   const rows = state.visibleRows
-  const colCount = 7 // 6 data cols + 1 actions col
   const { start, end } = computeWindow(state)
   state.windowStart = start
   state.windowEnd = end
 
-  tbody.empty()
-  if (start > 0) spacerRow(tbody, colCount, start * state.rowHeight)
-  for (let i = start; i < end; i++) {
-    renderTaskRow(tbody, rows[i].task, rows[i].depth, ctx)
+  list.empty()
+  if (start > 0) {
+    const spacer = list.createDiv('pm-table-spacer')
+    spacer.style.height = `${start * state.rowHeight}px`
   }
-  if (end < rows.length) spacerRow(tbody, colCount, (rows.length - end) * state.rowHeight)
+  for (let i = start; i < end; i++) {
+    renderTaskRow(list, rows[i].task, rows[i].depth, ctx)
+  }
+  if (end < rows.length) {
+    const spacer = list.createDiv('pm-table-spacer')
+    spacer.style.height = `${(rows.length - end) * state.rowHeight}px`
+  }
 
-  const addRow = tbody.createEl('tr', { cls: 'pm-table-add-row' })
-  const addCell = addRow.createEl('td', { attr: { colspan: String(colCount) } })
-  renderAddButton(addCell, 'Add task', () => {
+  const addRow = list.createDiv('pm-table-add-row')
+  renderAddButton(addRow, 'Add task', () => {
     openTaskModal(ctx.plugin, ctx.project, { onSave: () => ctx.onRefresh() })
   })
 
-  // Calibrate exactly once. Row heights are not perfectly uniform, so re-measuring
-  // every pass feeds back into the window math and oscillates.
   if (!state.heightCalibrated) {
-    const first = tbody.querySelector('tr[data-task-id]')
+    const first = list.querySelector('[data-task-id]')
     if (first instanceof HTMLElement && first.offsetHeight > 0) {
       state.heightCalibrated = true
-      if (Math.abs(first.offsetHeight - state.rowHeight) > 0.5) {
+      if (Math.abs(first.offsetHeight - state.rowHeight) > 1) {
         state.rowHeight = first.offsetHeight
         renderWindowRows(ctx)
       }
     }
   }
-}
-
-function spacerRow(tbody: HTMLElement, colCount: number, height: number): void {
-  const tr = tbody.createEl('tr', { cls: 'pm-table-spacer' })
-  const td = tr.createEl('td', { attr: { colspan: String(colCount) } })
-  td.setCssStyles({ height: `${height}px` })
 }
