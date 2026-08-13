@@ -18,6 +18,7 @@ import { safeAsync, getDefaultStatusId, getDefaultPriorityId, getPriorityConfig 
 import { confirmDialog } from '../ui/ModalFactory'
 import { renderTaskFormFields } from './TaskFormFields'
 import { renderTimeTrackingPanel } from './TimeTrackingPanel'
+import { renderSubtasksPanel } from './SubtasksPanel'
 import { NoteLinkSuggest } from './NoteLinkSuggest'
 
 export class TaskModal extends Modal {
@@ -545,6 +546,8 @@ export class TaskModal extends Modal {
       // Save acceptance criteria alongside description
       this.task.acceptanceCriteria = acArea.value
     })
+
+    renderSubtasksPanel(body, this.task, this.plugin, this.plugin.store.configFor(this.project).statuses)
 
     renderTimeTrackingPanel(body, this.task)
 
