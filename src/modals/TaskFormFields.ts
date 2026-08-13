@@ -319,18 +319,6 @@ export function renderTaskFormFields(container: HTMLElement, ctx: TaskFormFields
     return cell
   }, 'check-square')
 
-  renderPropRow(grid, 'Acceptance criteria', () => {
-    const cell = createDiv('pm-prop-value pm-prop-value--textarea')
-    renderInputControl({
-      container: cell,
-      value: task.acceptanceCriteria ?? '',
-      inputType: 'textarea',
-      placeholder: 'What criteria must be met for this task to be complete?',
-      onChange: (v) => { task.acceptanceCriteria = v; }
-    })
-    return cell
-  }, 'clipboard-check')
-
   if (project.versions.length > 0 || task.versionId) {
     renderPropRow(
       grid,

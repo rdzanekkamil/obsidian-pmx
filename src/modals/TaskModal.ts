@@ -528,6 +528,25 @@ export class TaskModal extends Modal {
       window.setTimeout(autoResize, 0)
     }
 
+    // Acceptance criteria — full textarea, always visible, saved with description
+    const acSection = body.createDiv('pm-modal-section')
+    acSection.createEl('h4', { text: 'Acceptance criteria', cls: 'pm-modal-section-title' })
+    const acArea = acSection.createEl('textarea', { cls: 'pm-modal-description pm-modal-ac' })
+    acArea.placeholder = 'What criteria must be met for this task to be complete?'
+    acArea.value = this.task.acceptanceCriteria ?? ''
+
+    const acAutoResize = () => {
+      acArea.setCssProps({ '--desc-height': 'auto' })
+      acArea.setCssProps({ '--desc-height': acArea.scrollHeight + 'px' })
+    }
+    acArea.addEventListener('input', acAutoResize)
+    if (this.task.acceptanceCriteria) window.setTimeout(acAutoResize, 0)
+
+    descArea.addEventListener('input', () => {
+      // Save acceptance criteria alongside description
+      this.task.acceptanceCriteria = acArea.value
+    })
+
     renderSubtasksPanel(body, this.task, this.plugin, this.plugin.store.configFor(this.project).statuses)
 
     renderTimeTrackingPanel(body, this.task)
