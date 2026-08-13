@@ -174,11 +174,11 @@ export class PMSettingTab extends PluginSettingTab {
       },
       {
         type: 'group',
-        heading: 'API v2',
+        heading: 'REST API',
         items: [
           {
-            name: 'Enable REST API v2',
-            desc: 'Start HTTP server on localhost for CRUD operations. Requires restart.',
+            name: 'Enable REST API',
+            desc: 'Start HTTP server on localhost for CRUD operations via /api/v2. Requires restart.',
             control: { type: 'toggle', key: 'showApi' }
           },
           {
@@ -216,46 +216,7 @@ export class PMSettingTab extends PluginSettingTab {
         items: [
           {
             name: 'Enable MCP Server',
-            desc: 'Start MCP server for AI tool access via HTTP. Requires restart.',
-            control: { type: 'toggle', key: 'showMcp' }
-          },
-          {
-            name: 'Port',
-            desc: 'TCP port. Default: 17172.',
-            control: {
-              type: 'text',
-              key: 'mcpPort',
-              defaultValue: '17172',
-              placeholder: '17172'
-            }
-          },
-          {
-            type: 'render' as never,
-            name: 'MCP Endpoint',
-            desc: 'Use this URL in your AI harness.',
-            render: (setting: Setting) => {
-              const url = `http://localhost:${this.plugin.settings.mcpPort}/mcp`
-              setting.settingEl.addClass('pm-mcp-endpoint')
-              setting.descEl.setText(' ')
-              const codeEl = setting.descEl.createEl('code', { text: url })
-              const btn = new Setting(setting.settingEl).addButton((btn) => {
-                btn.setIcon('copy').setTooltip('Copy URL').onClick(async () => {
-                  await navigator.clipboard.writeText(url)
-                  new Notice('MCP URL copied!')
-                })
-              })
-              btn.settingEl.style.marginLeft = '8px'
-            }
-          }
-        ]
-      },
-      {
-        type: 'group',
-        heading: 'MCP v2',
-        items: [
-          {
-            name: 'Enable MCP Server',
-            desc: 'Start MCP server for AI tool access via HTTP. Direct store access, same interface as REST API v2. Requires restart.',
+            desc: 'Start MCP server for AI tool access via /mcp. Direct store access, same interface as REST API. Requires restart.',
             control: { type: 'toggle', key: 'showMcp' }
           },
           {
