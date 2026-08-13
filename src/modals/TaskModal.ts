@@ -539,13 +539,11 @@ export class TaskModal extends Modal {
       acArea.setCssProps({ '--desc-height': 'auto' })
       acArea.setCssProps({ '--desc-height': acArea.scrollHeight + 'px' })
     }
-    acArea.addEventListener('input', acAutoResize)
-    if (this.task.acceptanceCriteria) window.setTimeout(acAutoResize, 0)
-
-    descArea.addEventListener('input', () => {
-      // Save acceptance criteria alongside description
+    acArea.addEventListener('input', () => {
       this.task.acceptanceCriteria = acArea.value
+      acAutoResize()
     })
+    if (this.task.acceptanceCriteria) window.setTimeout(acAutoResize, 0)
 
     renderSubtasksPanel(body, this.task, this.plugin, this.plugin.store.configFor(this.project).statuses)
 
