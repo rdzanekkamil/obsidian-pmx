@@ -76,38 +76,6 @@ export function renderTaskFormFields(container: HTMLElement, ctx: TaskFormFields
     'shapes'
   )
 
-  // The parent picker shares the type row and shows only for subtasks; an empty cell holds
-  // the column otherwise, so switching type never reflows the grid.
-  if (task.type === 'subtask') {
-    renderPropRow(
-      grid,
-      'Parent task',
-      () => {
-        const cell = createDiv('pm-prop-value')
-        const parents = flattenTasks(project.tasks)
-          .map((f) => f.task)
-          .filter((t) => t.id !== task.id)
-        renderSelectControl({
-          container: cell,
-          value: ctx.parentId,
-          options: [{ id: '', label: 'No parent' }, ...parents.map((t) => ({ id: t.id, label: t.title }))],
-          placeholder: 'Select parent',
-          search: true,
-          searchPlaceholder: 'Search tasks…',
-          width: 230,
-          onChange: (id) => {
-            ctx.setParentId(id || null)
-            rerender()
-          }
-        })
-        return cell
-      },
-      'corner-up-right'
-    )
-  } else {
-    grid.createDiv()
-  }
-
   renderPropRow(
     grid,
     'Status',
